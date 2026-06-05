@@ -8,8 +8,12 @@ export interface AspectConfig {
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AspectConfig {
+  const port = env.PORT ? Number.parseInt(env.PORT, 10) : 8099;
+  if (Number.isNaN(port)) {
+    throw new Error(`Invalid PORT environment variable: "${env.PORT}"`);
+  }
   return {
-    port: env.PORT ? Number.parseInt(env.PORT, 10) : 8099,
+    port,
     host: env.HOST ?? '0.0.0.0',
     webDir: env.ASPECT_WEB_DIR ?? null,
   };

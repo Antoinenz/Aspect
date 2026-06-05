@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import fp from 'fastify-plugin';
 import type { WebSocket } from '@fastify/websocket';
 import {
   createStatusMessage,
@@ -34,13 +35,21 @@ export class StatusHub {
   }
 }
 
-export async function statusChannel(app: FastifyInstance): Promise<void> {
-  const hub = new StatusHub();
-  app.decorate('statusHub', hub);
-  app.get('/ws', { websocket: true }, (socket) => {
-    hub.add(socket);
-  });
-}
+/**
+ * Wrapped with fastify-plugin so the `statusHub` decoration propagates to the
+ * parent (root) instance rather than staying inside an encapsulated context.
+ * Later plans reach it as `app.statusHub` to push real Home Assistant state.
+ */
+export const statusChannel = fp(
+  async function statusChannel(app: FastifyInstance): Promise<void> {
+    const hub = new StatusHub();
+    app.decorate('statusHub', hub);
+    app.get('/ws', { websocket: true }, (socket) => {
+      hub.add(socket);
+    });
+  },
+  { name: 'status-channel' },
+);
 
 declare module 'fastify' {
   interface FastifyInstance {

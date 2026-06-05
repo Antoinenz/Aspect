@@ -1,6 +1,13 @@
 /** High-level health of the Aspect server. */
 export type ServerStatus = 'connecting' | 'online' | 'degraded';
 
+/** Every valid {@link ServerStatus} value, for runtime validation. */
+const SERVER_STATUSES: ReadonlySet<string> = new Set<ServerStatus>([
+  'connecting',
+  'online',
+  'degraded',
+]);
+
 /** Pushed by the server to every client whenever its status changes. */
 export interface StatusMessage {
   type: 'status';
@@ -38,6 +45,7 @@ export function isServerToClientMessage(
   return (
     candidate.type === 'status' &&
     typeof candidate.status === 'string' &&
+    SERVER_STATUSES.has(candidate.status) &&
     typeof candidate.haConnected === 'boolean' &&
     typeof candidate.ts === 'number'
   );

@@ -29,7 +29,7 @@ export function connectToServer(url?: string): () => void {
       useConnectionStore.getState().setLink('disconnected');
       if (!disposed) scheduleReconnect();
     };
-    socket.onerror = () => socket?.close();
+    socket.onerror = (event) => (event.target as WebSocket).close();
   };
 
   const scheduleReconnect = (): void => {

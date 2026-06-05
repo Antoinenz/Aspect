@@ -14,7 +14,7 @@ export async function registerStatic(
   if (!webDir || !existsSync(webDir)) return;
   await app.register(fastifyStatic, { root: path.resolve(webDir) });
   app.setNotFoundHandler((req, reply) => {
-    if (req.url.startsWith('/ws') || req.url.startsWith('/health')) {
+    if (req.url === '/ws' || req.url.startsWith('/health')) {
       reply.code(404).send({ error: 'not found' });
       return;
     }

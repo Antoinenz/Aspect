@@ -27,4 +27,15 @@ describe('isServerToClientMessage', () => {
     expect(isServerToClientMessage(null)).toBe(false);
     expect(isServerToClientMessage('status')).toBe(false);
   });
+
+  it('rejects a status message with an unknown status value', () => {
+    expect(
+      isServerToClientMessage({
+        type: 'status',
+        status: 'bogus',
+        haConnected: false,
+        ts: Date.now(),
+      }),
+    ).toBe(false);
+  });
 });
