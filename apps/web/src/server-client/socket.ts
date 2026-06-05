@@ -1,0 +1,52 @@
+import { handleRawMessage } from './messageHandler.js';
+import { useConnectionStore } from '../store/connectionStore.js';
+
+const INITIAL_BACKOFF_MS = 500;
+const MAX_BACKOFF_MS = 10_000;
+
+/**
+ * Maintains a resilient WebSocket to the Aspect server. Reconnects with
+ * exponential backoff and routes every payload through handleRawMessage.
+ * Returns a disposer that closes the socket and stops reconnecting.
+ */
+export function connectToServer(url?: string): () => void {
+  const target = url ?? defaultUrl();
+  let socket: WebSocket | null = null;
+  let backoff = INITIAL_BACKOFF_MS;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  let disposed = false;
+
+  const open = (): void => {
+    useConnectionStore.getState().setLink('connecting');
+    socket = new WebSocket(target);
+
+    socket.onopen = () => {
+      backoff = INITIAL_BACKOFF_MS;
+      useConnectionStore.getState().setLink('connected');
+    };
+    socket.onmessage = (event) => handleRawMessage(String(event.data));
+    socket.onclose = () => {
+      useConnectionStore.getState().setLink('disconnected');
+      if (!disposed) scheduleReconnect();
+    };
+    socket.onerror = () => socket?.close();
+  };
+
+  const scheduleReconnect = (): void => {
+    timer = setTimeout(open, backoff);
+    backoff = Math.min(backoff * 2, MAX_BACKOFF_MS);
+  };
+
+  open();
+
+  return () => {
+    disposed = true;
+    if (timer) clearTimeout(timer);
+    socket?.close();
+  };
+}
+
+function defaultUrl(): string {
+  const proto = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  return `${proto}://${window.location.host}/ws`;
+}
