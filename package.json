@@ -1,0 +1,17 @@
+{
+  "name": "aspect",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.12.0",
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @aspect/server --filter @aspect/web dev",
+    "build": "pnpm --filter @aspect/web build && pnpm --filter @aspect/server build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "test:run": "pnpm -r test:run"
+  },
+  "devDependencies": {
+    "typescript": "5.7.2"
+  }
+}
