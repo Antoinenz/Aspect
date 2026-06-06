@@ -14,5 +14,7 @@ export function handleRawMessage(raw: string): void {
     return;
   }
   if (!isServerToClientMessage(parsed)) return;
-  useConnectionStore.getState().applyStatus(parsed.status, parsed.haConnected);
+  if (parsed.type === 'status') {
+    useConnectionStore.getState().applyStatus(parsed.status, parsed.haConnected);
+  }
 }
