@@ -22,6 +22,9 @@ out/
 *.db
 data/
 
+# Local HA export from `pnpm --filter @aspect/server dump:ha` (contains home data)
+home-export.json
+
 # Logs
 logs/
 *.log
