@@ -29,6 +29,9 @@ importers:
       fastify-plugin:
         specifier: 5.0.1
         version: 5.0.1
+      home-assistant-js-websocket:
+        specifier: 9.4.0
+        version: 9.4.0
     devDependencies:
       '@types/node':
         specifier: 22.10.1
@@ -1820,6 +1823,9 @@ packages:
   hasown@2.0.4:
     resolution: {integrity: sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A==}
     engines: {node: '>= 0.4'}
+
+  home-assistant-js-websocket@9.4.0:
+    resolution: {integrity: sha512-312TuI63IfKf8G+iWvKmPYIdxWMNojwVk03o9OSpQFFDjSCNAYdCUfuPCFs73SuJ1Xpd4D1Eo11CB33MGMqZ+Q==}
 
   html-encoding-sniffer@4.0.0:
     resolution: {integrity: sha512-Y22oTqIU4uuPgEemfz7NDJz6OeKf12Lsu+QC+s3BVpda64lTiMYCyGwg5ki4vFxkMwQdeZDl2adZoqUgdFuTgQ==}
@@ -4765,6 +4771,8 @@ snapshots:
   hasown@2.0.4:
     dependencies:
       function-bind: 1.1.2
+
+  home-assistant-js-websocket@9.4.0: {}
 
   html-encoding-sniffer@4.0.0:
     dependencies:
