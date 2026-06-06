@@ -5,11 +5,19 @@ import {
   createStatusMessage,
   createSnapshotMessage,
   createEntityUpdateMessage,
+  isClientToServerMessage,
   type EntityState,
   type ServerStatus,
   type ServerToClientMessage,
 } from '@aspect/shared';
 import type { HaCache } from '../cache/haCache.js';
+
+export type ServiceCaller = (
+  domain: string,
+  service: string,
+  entityId: string,
+  data?: Record<string, unknown>,
+) => void | Promise<void>;
 
 /**
  * Tracks connected web clients. Greets each new client with the current status
@@ -21,8 +29,26 @@ export class ClientHub {
   private readonly clients = new Set<WebSocket>();
   private status: ServerStatus = 'connecting';
   private haConnected = false;
+  private serviceCaller: ServiceCaller | null = null;
 
   constructor(private readonly cache: HaCache) {}
+
+  setServiceCaller(caller: ServiceCaller): void {
+    this.serviceCaller = caller;
+  }
+
+  handleClientMessage(raw: string): void {
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw);
+    } catch {
+      return;
+    }
+    if (!isClientToServerMessage(parsed)) return;
+    if (parsed.type === 'call_service' && this.serviceCaller) {
+      void this.serviceCaller(parsed.domain, parsed.service, parsed.entityId, parsed.data);
+    }
+  }
 
   add(socket: WebSocket): void {
     this.clients.add(socket);
@@ -74,6 +100,7 @@ export const clientChannel = fp(
     app.decorate('haCache', opts.cache);
     app.get('/ws', { websocket: true }, (socket) => {
       hub.add(socket);
+      socket.on('message', (raw) => hub.handleClientMessage(raw.toString()));
     });
   },
   { name: 'client-channel' },

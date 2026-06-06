@@ -21,6 +21,11 @@ export class MockHaServer {
   private sockets = new Set<WebSocket>();
   /** Subscription id used by the client for state_changed events. */
   private stateChangedSubId: number | null = null;
+  private calls: Array<{ domain: string; service: string; serviceData: unknown; target: unknown }> = [];
+
+  getServiceCalls(): ReadonlyArray<{ domain: string; service: string; serviceData: unknown; target: unknown }> {
+    return this.calls;
+  }
 
   private constructor(
     private readonly opts: MockHaOptions,
@@ -116,6 +121,15 @@ export class MockHaServer {
         if (msg.event_type === 'state_changed' && typeof id === 'number') {
           this.stateChangedSubId = id;
         }
+        result(null);
+        return;
+      case 'call_service':
+        this.calls.push({
+          domain: msg.domain as string,
+          service: msg.service as string,
+          serviceData: msg.service_data,
+          target: msg.target,
+        });
         result(null);
         return;
       case 'ping':

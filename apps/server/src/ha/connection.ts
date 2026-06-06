@@ -2,6 +2,7 @@ import {
   createConnection,
   createLongLivedTokenAuth,
   getStates,
+  callService,
   type Connection,
 } from 'home-assistant-js-websocket';
 import type { ClientHub } from '../ws/clientChannel.js';
@@ -26,6 +27,12 @@ export interface HaConnectionOptions {
 
 export interface HaConnectionHandle {
   connection: Connection;
+  callService: (
+    domain: string,
+    service: string,
+    entityId: string,
+    data?: Record<string, unknown>,
+  ) => Promise<void>;
   stop: () => void;
 }
 
@@ -83,6 +90,9 @@ export async function startHaConnection(
 
   return {
     connection,
+    callService: async (domain, service, entityId, data) => {
+      await callService(connection, domain, service, data, { entity_id: entityId });
+    },
     stop: () => connection.close(),
   };
 }

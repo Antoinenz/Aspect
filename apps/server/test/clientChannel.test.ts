@@ -7,6 +7,7 @@ import {
 } from '@aspect/shared';
 import { buildApp } from '../src/app.js';
 import { HaCache } from '../src/cache/haCache.js';
+import { ClientHub } from '../src/ws/clientChannel.js';
 import { listen } from './helpers/wsTestClient.js';
 
 let app: FastifyInstance | undefined;
@@ -93,5 +94,35 @@ describe('GET /ws (ClientHub)', () => {
     if (msgs[2]?.type === 'entity_update') {
       expect(msgs[2].entities[0]?.entityId).toBe('light.kitchen');
     }
+  });
+});
+
+describe('ClientHub.handleClientMessage', () => {
+  it('invokes the service caller for a call_service message', () => {
+    const cache = new HaCache();
+    const hub = new ClientHub(cache);
+    const calls: Array<[string, string, string, unknown]> = [];
+    hub.setServiceCaller((domain, service, entityId, data) => {
+      calls.push([domain, service, entityId, data]);
+    });
+    hub.handleClientMessage(
+      JSON.stringify({
+        type: 'call_service',
+        domain: 'light',
+        service: 'turn_on',
+        entityId: 'light.k',
+        data: { brightness_pct: 40 },
+      }),
+    );
+    expect(calls).toEqual([['light', 'turn_on', 'light.k', { brightness_pct: 40 }]]);
+  });
+
+  it('ignores invalid messages without throwing', () => {
+    const hub = new ClientHub(new HaCache());
+    hub.setServiceCaller(() => {
+      throw new Error('should not be called');
+    });
+    expect(() => hub.handleClientMessage('not json')).not.toThrow();
+    expect(() => hub.handleClientMessage(JSON.stringify({ type: 'x' }))).not.toThrow();
   });
 });

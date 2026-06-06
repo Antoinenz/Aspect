@@ -35,6 +35,7 @@ export async function startServer(
         cache: app.haCache,
         hub: app.clientHub,
       });
+      app.clientHub.setServiceCaller(ha.callService);
       haStop = ha.stop;
       // eslint-disable-next-line no-console
       console.log(`Connected to Home Assistant at ${config.haUrl}`);
