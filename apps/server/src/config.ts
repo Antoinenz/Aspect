@@ -5,6 +5,10 @@ export interface AspectConfig {
   host: string;
   /** Absolute path to the built web assets, or null in dev. */
   webDir: string | null;
+  /** Base URL of the Home Assistant instance (e.g. http://host:8123), or null. */
+  haUrl: string | null;
+  /** Long-lived access token for Home Assistant, or null. */
+  haToken: string | null;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AspectConfig {
@@ -16,5 +20,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AspectConfig {
     port,
     host: env.HOST ?? '0.0.0.0',
     webDir: env.ASPECT_WEB_DIR ?? null,
+    haUrl: env.HA_URL ?? null,
+    haToken: env.HA_TOKEN ?? null,
   };
 }
