@@ -36,7 +36,13 @@ export function ToggleControls({ entity }: { entity: EntityState }): ReactElemen
   return (
     <div style={{ display: 'grid', gap: 14 }}>
       <ActionButton onClick={toggle} active={isOn}>
-        {isOn ? `Turn ${domain === 'lock' ? 'lock' : 'off'}` : `Turn ${domain === 'lock' ? 'unlock' : 'on'}`}
+        {domain === 'lock'
+          ? isOn
+            ? 'Lock'
+            : 'Unlock'
+          : isOn
+            ? 'Turn off'
+            : 'Turn on'}
       </ActionButton>
       {domain === 'fan' && pct !== null && (
         <label style={{ display: 'grid', gap: 6, fontSize: 13, color: 'var(--muted)' }}>

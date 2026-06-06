@@ -28,9 +28,9 @@ export function HelperControls({ entity }: { entity: EntityState }): ReactElemen
   }
 
   // number
-  const min = (entity.attributes.min as number) ?? 0;
-  const max = (entity.attributes.max as number) ?? 100;
-  const step = (entity.attributes.step as number) ?? 1;
+  const min = typeof entity.attributes.min === 'number' ? entity.attributes.min : 0;
+  const max = typeof entity.attributes.max === 'number' ? entity.attributes.max : 100;
+  const step = typeof entity.attributes.step === 'number' ? entity.attributes.step : 1;
   const value = Number(entity.state);
   return (
     <label style={{ display: 'grid', gap: 6, fontSize: 13, color: 'var(--muted)' }}>

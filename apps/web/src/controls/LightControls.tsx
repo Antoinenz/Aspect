@@ -16,10 +16,18 @@ export function LightControls({ entity }: { entity: EntityState }): ReactElement
   const modes = Array.isArray(entity.attributes.supported_color_modes)
     ? (entity.attributes.supported_color_modes as string[])
     : [];
-  const supportsBrightness = modes.some((m) => m !== 'onoff') || 'brightness' in entity.attributes;
+  const supportsBrightness =
+    modes.some((m) => m !== 'onoff' && m !== 'unknown' && m !== 'none') ||
+    'brightness' in entity.attributes;
   const supportsTemp = modes.includes('color_temp');
-  const minK = (entity.attributes.min_color_temp_kelvin as number) ?? 2000;
-  const maxK = (entity.attributes.max_color_temp_kelvin as number) ?? 6500;
+  const minK =
+    typeof entity.attributes.min_color_temp_kelvin === 'number'
+      ? entity.attributes.min_color_temp_kelvin
+      : 2000;
+  const maxK =
+    typeof entity.attributes.max_color_temp_kelvin === 'number'
+      ? entity.attributes.max_color_temp_kelvin
+      : 6500;
   const curK = typeof entity.attributes.color_temp_kelvin === 'number'
     ? (entity.attributes.color_temp_kelvin as number)
     : Math.round((minK + maxK) / 2);
