@@ -1,4 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+vi.mock('../server-client/commands.js', () => ({ callService: () => {} }));
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { Dashboard } from './Dashboard.js';
@@ -62,6 +64,7 @@ describe('Dashboard', () => {
     );
     render(<Dashboard />);
     await userEvent.click(screen.getByRole('button', { name: /kitchen lamp/i }));
-    expect(await screen.findByText(/controls are coming soon/i)).toBeInTheDocument();
+    // The sheet opens with the entity name as its heading (role=dialog).
+    expect(await screen.findByRole('dialog', { name: /kitchen lamp/i })).toBeInTheDocument();
   });
 });

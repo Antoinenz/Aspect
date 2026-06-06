@@ -3,6 +3,7 @@ import type { EntityState } from '@aspect/shared';
 import { Sheet } from '../ui/Sheet.js';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { friendlyName, formatState } from '../domain/entities.js';
+import { ControlsFor } from '../controls/ControlsFor.js';
 
 export interface EntityDetailSheetProps {
   entityId: string | null;
@@ -31,9 +32,7 @@ export function EntityDetailSheet({
           <p style={{ margin: 0, fontSize: 15, color: 'var(--muted)' }}>
             {formatState(entity)}
           </p>
-          <p style={{ margin: 0, fontSize: 13, color: 'var(--muted)' }}>
-            Controls are coming soon.
-          </p>
+          <ControlsFor entity={entity} />
           <AttributeList entity={entity} />
         </div>
       )}
