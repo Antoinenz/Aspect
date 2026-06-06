@@ -1,52 +1,48 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
+import { render, screen, act, waitFor } from '@testing-library/react';
 import { App } from './App.js';
 import { useConnectionStore } from './store/connectionStore.js';
-import type { EntityState } from '@aspect/shared';
 
 vi.mock('./server-client/socket.js', () => ({
   connectToServer: () => () => undefined,
 }));
 
-const entity = (id: string): EntityState => ({
-  entityId: id,
-  state: 'on',
-  attributes: {},
-  lastChanged: 't',
-  lastUpdated: 't',
-});
+const base = {
+  link: 'disconnected' as const,
+  serverStatus: null,
+  haConnected: false,
+  entities: {},
+  areas: [],
+  devices: [],
+  registry: [],
+};
 
 describe('App', () => {
-  beforeEach(() => {
-    useConnectionStore.setState({
-      link: 'disconnected',
-      serverStatus: null,
-      haConnected: false,
-      entities: {},
-      areas: [],
-      devices: [],
-      registry: [],
-    });
-  });
+  beforeEach(() => useConnectionStore.setState({ ...base }));
 
-  it('shows a connecting state before any status arrives', () => {
+  it('shows a connecting badge before the link is up', () => {
     render(<App />);
     expect(screen.getByText(/connecting/i)).toBeInTheDocument();
   });
 
-  it('shows status and live counts once received', async () => {
+  it('hides the badge when fully healthy', async () => {
     render(<App />);
-    act(() => {
-      useConnectionStore.getState().setLink('connected');
-      useConnectionStore.getState().applyStatus('online', true);
-      useConnectionStore.getState().applySnapshot({
-        entities: [entity('light.a'), entity('light.b')],
-        areas: [{ areaId: 'k', name: 'Kitchen' }],
-        devices: [],
-        registry: [],
-      });
+    act(() =>
+      useConnectionStore.setState({
+        ...base,
+        link: 'connected',
+        serverStatus: 'online',
+        haConnected: true,
+      }),
+    );
+    await waitFor(() => {
+      expect(screen.queryByText(/connecting/i)).not.toBeInTheDocument();
     });
-    expect(await screen.findByText(/online/i)).toBeInTheDocument();
-    expect(screen.getByText(/2 entities/i)).toBeInTheDocument();
+    expect(screen.queryByText(/reconnecting/i)).not.toBeInTheDocument();
+  });
+
+  it('always renders the dashboard shell (Home header)', () => {
+    render(<App />);
+    expect(screen.getByText('Home')).toBeInTheDocument();
   });
 });
