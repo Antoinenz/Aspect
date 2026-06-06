@@ -1,3 +1,10 @@
+import type {
+  Area,
+  Device,
+  EntityState,
+  RegistryEntry,
+} from './entities.js';
+
 /** High-level health of the Aspect server. */
 export type ServerStatus = 'connecting' | 'online' | 'degraded';
 
@@ -18,8 +25,29 @@ export interface StatusMessage {
   ts: number;
 }
 
+/** Sent once when a client connects (and again after a full registry change). */
+export interface SnapshotMessage {
+  type: 'snapshot';
+  entities: EntityState[];
+  areas: Area[];
+  devices: Device[];
+  registry: RegistryEntry[];
+}
+
+/** Sent when one or more entities change or are removed. */
+export interface EntityUpdateMessage {
+  type: 'entity_update';
+  /** Added or changed entities. */
+  entities: EntityState[];
+  /** Entity IDs that no longer exist. */
+  removed: string[];
+}
+
 /** Union of every message the server can send to a client. */
-export type ServerToClientMessage = StatusMessage;
+export type ServerToClientMessage =
+  | StatusMessage
+  | SnapshotMessage
+  | EntityUpdateMessage;
 
 /** Sent by a client immediately after connecting. */
 export interface HelloMessage {
@@ -37,16 +65,45 @@ export function createStatusMessage(
   return { type: 'status', status, haConnected, ts: Date.now() };
 }
 
+export function createSnapshotMessage(snapshot: {
+  entities: EntityState[];
+  areas: Area[];
+  devices: Device[];
+  registry: RegistryEntry[];
+}): SnapshotMessage {
+  return { type: 'snapshot', ...snapshot };
+}
+
+export function createEntityUpdateMessage(
+  entities: EntityState[],
+  removed: string[] = [],
+): EntityUpdateMessage {
+  return { type: 'entity_update', entities, removed };
+}
+
 export function isServerToClientMessage(
   value: unknown,
 ): value is ServerToClientMessage {
   if (typeof value !== 'object' || value === null) return false;
-  const candidate = value as Record<string, unknown>;
-  return (
-    candidate.type === 'status' &&
-    typeof candidate.status === 'string' &&
-    SERVER_STATUSES.has(candidate.status) &&
-    typeof candidate.haConnected === 'boolean' &&
-    typeof candidate.ts === 'number'
-  );
+  const c = value as Record<string, unknown>;
+  switch (c.type) {
+    case 'status':
+      return (
+        typeof c.status === 'string' &&
+        SERVER_STATUSES.has(c.status) &&
+        typeof c.haConnected === 'boolean' &&
+        typeof c.ts === 'number'
+      );
+    case 'snapshot':
+      return (
+        Array.isArray(c.entities) &&
+        Array.isArray(c.areas) &&
+        Array.isArray(c.devices) &&
+        Array.isArray(c.registry)
+      );
+    case 'entity_update':
+      return Array.isArray(c.entities) && Array.isArray(c.removed);
+    default:
+      return false;
+  }
 }
