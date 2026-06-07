@@ -29,10 +29,11 @@ export function Tile({
       className={[
         'relative flex min-h-[120px] flex-col p-4 text-left font-[inherit] cursor-pointer',
         'border backdrop-blur-[22px]',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50',
         wide ? 'col-span-2' : '',
         active
           ? 'bg-[#f6f7f9]/95 border-white/50 text-[#15161a]'
-          : 'bg-[rgba(36,40,50,0.5)] border-white/10 text-[var(--color-text)]',
+          : 'bg-[rgba(36,40,50,0.5)] border-white/10 text-[var(--color-text)] backdrop-saturate-[1.3]',
       ].join(' ')}
       style={sq}
     >

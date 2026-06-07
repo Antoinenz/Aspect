@@ -26,7 +26,7 @@ export function Sheet({ open, onClose, title, children }: SheetProps): ReactElem
               <motion.div
                 initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
                 transition={{ type: 'spring', stiffness: 380, damping: 36 }}
-                className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[85vh] w-full max-w-[520px] overflow-y-auto border border-white/10 bg-[rgba(28,30,38,0.85)] p-5 backdrop-blur-[28px]"
+                className="fixed inset-x-0 bottom-0 z-50 mx-auto max-h-[85vh] w-full max-w-[520px] overflow-y-auto border border-white/10 bg-[rgba(28,30,38,0.85)] p-5 backdrop-blur-[28px] backdrop-saturate-[1.3]"
                 style={{ borderTopLeftRadius: '24px', borderTopRightRadius: '24px', cornerShape: `superellipse(${SQUIRCLE})`, paddingBottom: 'calc(20px + env(safe-area-inset-bottom))' } as React.CSSProperties}
               >
                 <div aria-hidden className="mx-auto mb-4 h-1 w-9 rounded-full bg-white/20" />

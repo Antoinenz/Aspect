@@ -8,7 +8,7 @@ export function StatusPill({
   const sq = { borderRadius: '18px', cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties;
   return (
     <button type="button" onClick={onClick} style={sq}
-      className="flex flex-none items-center gap-2.5 border border-white/10 bg-[rgba(40,44,54,0.5)] px-[15px] py-2.5 text-left backdrop-blur-[18px]">
+      className="flex flex-none items-center gap-2.5 border border-white/10 bg-[rgba(40,44,54,0.5)] px-[15px] py-2.5 text-left backdrop-blur-[18px] backdrop-saturate-[1.3] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50">
       <Icon path={path} size={18} />
       <span><b className="block text-[13px] font-bold">{label}</b><span className="block text-[11px] text-[var(--color-muted)]">{value}</span></span>
     </button>

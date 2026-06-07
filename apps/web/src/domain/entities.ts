@@ -13,18 +13,6 @@ export const SUPPORTED_DOMAINS: ReadonlySet<string> = new Set([
   'binary_sensor',
 ]);
 
-const ICONS: Record<string, string> = {
-  light: '💡',
-  switch: '🔌',
-  climate: '🌡️',
-  cover: '🪟',
-  lock: '🔒',
-  fan: '🌀',
-  scene: '🎬',
-  sensor: '📈',
-  binary_sensor: '⚪',
-};
-
 const ACTIVE_STATES: Record<string, string> = {
   light: 'on',
   switch: 'on',
@@ -60,10 +48,6 @@ export function friendlyName(
   const fn = entity.attributes.friendly_name;
   if (typeof fn === 'string' && fn.length > 0) return fn;
   return prettifyId(entity.entityId);
-}
-
-export function domainIcon(domain: string): string {
-  return ICONS[domain] ?? '◾';
 }
 
 export function isActive(entity: EntityState): boolean {

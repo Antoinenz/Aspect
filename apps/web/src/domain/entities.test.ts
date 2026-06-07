@@ -3,7 +3,6 @@ import {
   domainOf,
   isSupported,
   friendlyName,
-  domainIcon,
   isActive,
   formatState,
 } from './entities.js';
@@ -40,13 +39,6 @@ describe('friendlyName', () => {
   });
   it('prettifies the entity id as a last resort', () => {
     expect(friendlyName(e('light.living_room_lamp', 'on'), null)).toBe('Living Room Lamp');
-  });
-});
-
-describe('domainIcon', () => {
-  it('returns an icon per domain and a default', () => {
-    expect(domainIcon('light')).toBeTypeOf('string');
-    expect(domainIcon('unknowndomain')).toBeTypeOf('string');
   });
 });
 

@@ -17,7 +17,7 @@ export function Slider({
       <RSlider.Track className="relative h-1.5 grow rounded-full bg-white/15">
         <RSlider.Range className="absolute h-full rounded-full bg-white/80" />
       </RSlider.Track>
-      <RSlider.Thumb aria-label={ariaLabel} className="block h-5 w-5 rounded-full bg-white shadow-md focus:outline-none" />
+      <RSlider.Thumb aria-label={ariaLabel} className="block h-5 w-5 rounded-full bg-white shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-white/60" />
     </RSlider.Root>
   );
 }

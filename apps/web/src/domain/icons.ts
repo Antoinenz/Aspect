@@ -1,8 +1,8 @@
 import {
-  mdiLightbulb, mdiCeilingLight, mdiPowerSocket, mdiThermostat, mdiSnowflake,
+  mdiLightbulb, mdiThermostat,
   mdiBlindsHorizontal, mdiLock, mdiFan, mdiPalette, mdiScriptText, mdiRobot,
   mdiGestureTapButton, mdiFormatListBulleted, mdiTuneVertical, mdiSpeaker,
-  mdiThermometer, mdiWaterPercent, mdiFlash, mdiMotionSensor, mdiDoorOpen,
+  mdiThermometer, mdiWaterPercent, mdiFlash, mdiBattery, mdiMotionSensor, mdiDoorOpen,
   mdiWeatherPartlyCloudy, mdiToggleSwitchVariant, mdiHelpCircleOutline,
 } from '@mdi/js';
 import { domainOf } from './entities.js';
@@ -25,7 +25,7 @@ const DOMAIN_ICON: Record<string, string> = {
 };
 
 const SENSOR_CLASS_ICON: Record<string, string> = {
-  battery: mdiFlash,
+  battery: mdiBattery,
   temperature: mdiThermometer,
   humidity: mdiWaterPercent,
   power: mdiFlash,
@@ -43,9 +43,6 @@ export function iconFor(entity: EntityState): string {
     return domain === 'binary_sensor' ? mdiMotionSensor : mdiThermometer;
   }
   if (domain === 'weather') return mdiWeatherPartlyCloudy;
-  if (domain === 'ceiling_light') return mdiCeilingLight;
-  if (domain === 'outlet') return mdiPowerSocket;
-  if (domain === 'air') return mdiSnowflake;
   return DOMAIN_ICON[domain] ?? mdiHelpCircleOutline;
 }
 
