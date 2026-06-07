@@ -26,6 +26,7 @@ describe('startServer', () => {
       webDir: null,
       haUrl: null,
       haToken: null,
+      dbPath: ':memory:',
     });
     const res = await app.inject({ method: 'GET', url: '/health' });
     expect(res.statusCode).toBe(200);
@@ -38,6 +39,7 @@ describe('startServer', () => {
       webDir: null,
       haUrl: null,
       haToken: null,
+      dbPath: ':memory:',
     });
     await expect(app.close()).resolves.toBeUndefined();
     app = undefined;
