@@ -9,6 +9,8 @@ export interface AspectConfig {
   haUrl: string | null;
   /** Long-lived access token for Home Assistant, or null. */
   haToken: string | null;
+  /** Path to the SQLite database file (or ':memory:'). */
+  dbPath: string;
 }
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env): AspectConfig {
@@ -22,5 +24,6 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): AspectConfig {
     webDir: env.ASPECT_WEB_DIR ?? null,
     haUrl: env.HA_URL ?? null,
     haToken: env.HA_TOKEN ?? null,
+    dbPath: env.ASPECT_DB ?? 'data/aspect.db',
   };
 }
