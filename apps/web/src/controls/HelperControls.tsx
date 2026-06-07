@@ -3,6 +3,7 @@ import type { EntityState } from '@aspect/shared';
 import { domainOf } from '../domain/entities.js';
 import { callService } from '../server-client/commands.js';
 import { useConnectionStore } from '../store/connectionStore.js';
+import { Slider } from '../ui/Slider.js';
 
 export function HelperControls({ entity }: { entity: EntityState }): ReactElement {
   const optimistic = useConnectionStore((s) => s.applyOptimistic);
@@ -35,11 +36,8 @@ export function HelperControls({ entity }: { entity: EntityState }): ReactElemen
   return (
     <label style={{ display: 'grid', gap: 6, fontSize: 13, color: 'var(--muted)' }}>
       Value: {entity.state}
-      <input type="range" min={min} max={max} step={step} value={Number.isNaN(value) ? min : value}
-        onChange={(ev) => {
-          optimistic(id, { state: ev.target.value });
-          callService('number', 'set_value', id, { value: Number(ev.target.value) });
-        }} />
+      <Slider ariaLabel="Value" value={Number.isNaN(value) ? min : value} min={min} max={max} step={step}
+        onCommit={(v) => { optimistic(id, { state: String(v) }); callService('number', 'set_value', id, { value: v }); }} />
     </label>
   );
 }

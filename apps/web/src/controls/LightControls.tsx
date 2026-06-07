@@ -3,6 +3,7 @@ import type { EntityState } from '@aspect/shared';
 import { callService } from '../server-client/commands.js';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { ActionButton } from './ActionButton.js';
+import { Slider } from '../ui/Slider.js';
 
 export function LightControls({ entity }: { entity: EntityState }): ReactElement {
   const optimistic = useConnectionStore((s) => s.applyOptimistic);
@@ -51,15 +52,15 @@ export function LightControls({ entity }: { entity: EntityState }): ReactElement
       {supportsBrightness && (
         <label style={{ display: 'grid', gap: 6, fontSize: 13, color: 'var(--muted)' }}>
           Brightness: {brightness}%
-          <input type="range" min={0} max={100} value={brightness}
-            onChange={(ev) => setBrightness(Number(ev.target.value))} />
+          <Slider ariaLabel="Brightness" value={brightness} min={0} max={100}
+            onCommit={(v) => setBrightness(v)} />
         </label>
       )}
       {supportsTemp && (
         <label style={{ display: 'grid', gap: 6, fontSize: 13, color: 'var(--muted)' }}>
           Warmth: {curK}K
-          <input type="range" min={minK} max={maxK} step={50} value={curK}
-            onChange={(ev) => setTemp(Number(ev.target.value))} />
+          <Slider ariaLabel="Warmth" value={curK} min={minK} max={maxK} step={50}
+            onCommit={(v) => setTemp(v)} />
         </label>
       )}
     </div>

@@ -3,6 +3,7 @@ import type { EntityState } from '@aspect/shared';
 import { callService } from '../server-client/commands.js';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { ActionButton } from './ActionButton.js';
+import { Slider } from '../ui/Slider.js';
 
 export function CoverControls({ entity }: { entity: EntityState }): ReactElement {
   const optimistic = useConnectionStore((s) => s.applyOptimistic);
@@ -30,8 +31,7 @@ export function CoverControls({ entity }: { entity: EntityState }): ReactElement
       {position !== null && (
         <label style={{ display: 'grid', gap: 6, fontSize: 13, color: 'var(--muted)' }}>
           Position: {position}%
-          <input type="range" min={0} max={100} value={position}
-            onChange={(ev) => setPosition(Number(ev.target.value))} />
+          <Slider ariaLabel="Position" value={position} min={0} max={100} onCommit={(v) => setPosition(v)} />
         </label>
       )}
     </div>

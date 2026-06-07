@@ -3,6 +3,7 @@ import type { EntityState } from '@aspect/shared';
 import { callService } from '../server-client/commands.js';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { ActionButton } from './ActionButton.js';
+import { Slider } from '../ui/Slider.js';
 
 export function MediaPlayerControls({ entity }: { entity: EntityState }): ReactElement {
   const optimistic = useConnectionStore((s) => s.applyOptimistic);
@@ -36,12 +37,10 @@ export function MediaPlayerControls({ entity }: { entity: EntityState }): ReactE
       {volume !== null && (
         <label style={{ display: 'grid', gap: 6, fontSize: 13, color: 'var(--muted)' }}>
           Volume: {volume}%
-          <input type="range" min={0} max={100} value={volume}
-            onChange={(ev) => {
-              const v = Number(ev.target.value);
-              optimistic(id, { attributes: { volume_level: v / 100 } });
-              callService('media_player', 'volume_set', id, { volume_level: v / 100 });
-            }} />
+          <Slider ariaLabel="Volume" value={volume} min={0} max={100} onCommit={(v) => {
+            optimistic(id, { attributes: { volume_level: v / 100 } });
+            callService('media_player', 'volume_set', id, { volume_level: v / 100 });
+          }} />
         </label>
       )}
       {sources.length > 0 && (

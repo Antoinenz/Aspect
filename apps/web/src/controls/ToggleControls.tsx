@@ -4,6 +4,7 @@ import { domainOf } from '../domain/entities.js';
 import { callService } from '../server-client/commands.js';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { ActionButton } from './ActionButton.js';
+import { Slider } from '../ui/Slider.js';
 
 const SERVICES: Record<string, { on: string; off: string; onState: string; offState: string }> = {
   switch: { on: 'turn_on', off: 'turn_off', onState: 'on', offState: 'off' },
@@ -47,13 +48,7 @@ export function ToggleControls({ entity }: { entity: EntityState }): ReactElemen
       {domain === 'fan' && pct !== null && (
         <label style={{ display: 'grid', gap: 6, fontSize: 13, color: 'var(--muted)' }}>
           Speed: {pct}%
-          <input
-            type="range"
-            min={0}
-            max={100}
-            value={pct}
-            onChange={(ev) => setPct(Number(ev.target.value))}
-          />
+          <Slider ariaLabel="Speed" value={pct} min={0} max={100} onCommit={(v) => setPct(v)} />
         </label>
       )}
     </div>
