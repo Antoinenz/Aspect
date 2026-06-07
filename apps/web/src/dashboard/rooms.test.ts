@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { buildRooms } from './rooms.js';
-import type { Area, Device, EntityState, RegistryEntry } from '@aspect/shared';
+import type { Device, EntityState, RegistryEntry } from '@aspect/shared';
 
 const e = (entityId: string, state = 'on', attributes: Record<string, unknown> = {}): EntityState => ({
   entityId, state, attributes, lastChanged: 't', lastUpdated: 't',
