@@ -1,55 +1,54 @@
 import { motion } from 'motion/react';
 import type { ReactElement } from 'react';
+import { Icon } from './Icon.js';
+import { SQUIRCLE } from './tokens.js';
 
 export interface TileProps {
-  icon: string;
+  path: string;
+  tint?: string | null;
   name: string;
   state: string;
   active: boolean;
+  wide?: boolean;
+  battery?: number | null;
   onPress: () => void;
 }
 
-export function Tile({ icon, name, state, active, onPress }: TileProps): ReactElement {
+export function Tile({
+  path, tint, name, state, active, wide = false, battery = null, onPress,
+}: TileProps): ReactElement {
+  const sq = { borderRadius: '24px', cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties;
+  const chipSq = { borderRadius: '13px', cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties;
+  const low = battery !== null && battery <= 15;
   return (
     <motion.button
       type="button"
       onClick={onPress}
-      whileTap={{ scale: 0.96 }}
+      whileTap={{ scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-      style={{
-        appearance: 'none',
-        textAlign: 'left',
-        cursor: 'pointer',
-        display: 'block',
-        width: '100%',
-        padding: 15,
-        borderRadius: 'var(--radius-tile)',
-        background: active ? 'var(--active-surface)' : 'var(--surface)',
-        border: `1px solid ${active ? 'var(--active-border)' : 'var(--border)'}`,
-        color: active ? 'var(--active-text)' : 'var(--text)',
-        font: 'inherit',
-      }}
+      className={[
+        'relative flex min-h-[120px] flex-col p-4 text-left font-[inherit] cursor-pointer',
+        'border backdrop-blur-[22px]',
+        wide ? 'col-span-2' : '',
+        active
+          ? 'bg-[#f6f7f9]/95 border-white/50 text-[#15161a]'
+          : 'bg-[rgba(36,40,50,0.5)] border-white/10 text-[var(--color-text)]',
+      ].join(' ')}
+      style={sq}
     >
+      {battery !== null && (
+        <span className={`absolute right-3.5 top-3.5 text-[11px] font-semibold ${low ? 'text-[#ff8a8a]' : active ? 'text-[#7c8090]' : 'text-[rgba(235,238,245,0.55)]'}`}>
+          {battery}%
+        </span>
+      )}
       <span
-        aria-hidden
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          width: 36,
-          height: 36,
-          borderRadius: 'var(--radius-icon)',
-          fontSize: 17,
-          marginBottom: 12,
-          background: active ? 'var(--active-icon)' : 'var(--border)',
-        }}
+        className="flex h-[42px] w-[42px] items-center justify-center"
+        style={{ ...chipSq, background: active ? '#191c24' : 'rgba(255,255,255,0.10)' }}
       >
-        {icon}
+        <Icon path={path} size={22} color={active ? '#fff' : (tint ?? '#dfe3ea')} />
       </span>
-      <span style={{ display: 'block', fontSize: 13.5, fontWeight: 600 }}>{name}</span>
-      <span style={{ display: 'block', fontSize: 11.5, marginTop: 3, opacity: 0.8 }}>
-        {state}
-      </span>
+      <span className={`mt-auto text-[14px] font-bold tracking-[-0.2px] ${active ? 'text-[#15161a]' : ''}`}>{name}</span>
+      <span className={`mt-0.5 text-[12px] font-medium ${active ? 'text-[#565a66]' : 'text-[var(--color-muted)]'}`}>{state}</span>
     </motion.button>
   );
 }

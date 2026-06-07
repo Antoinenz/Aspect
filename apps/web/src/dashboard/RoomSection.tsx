@@ -1,7 +1,8 @@
-import type { ReactElement } from 'react';
 import { Tile } from '../ui/Tile.js';
-import { domainIcon, formatState, isActive } from '../domain/entities.js';
+import { formatState, isActive, domainOf } from '../domain/entities.js';
+import { iconFor, tintFor } from '../domain/icons.js';
 import type { Room, RoomEntity } from './rooms.js';
+import type { ReactElement } from 'react';
 
 export interface RoomSectionProps {
   room: Room;
@@ -10,28 +11,14 @@ export interface RoomSectionProps {
 
 export function RoomSection({ room, onSelect }: RoomSectionProps): ReactElement {
   return (
-    <section style={{ marginBottom: 28 }}>
-      <h2
-        style={{
-          margin: '0 0 12px',
-          fontSize: 17,
-          fontWeight: 650,
-          letterSpacing: '-0.3px',
-        }}
-      >
-        {room.name}
-      </h2>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-          gap: 13,
-        }}
-      >
+    <section className="mb-7">
+      <h2 className="mb-3 text-[17px] font-bold tracking-[-0.3px]">{room.name}</h2>
+      <div className="grid gap-[13px] [grid-template-columns:repeat(auto-fill,minmax(150px,1fr))]">
         {room.entities.map((re) => (
           <Tile
             key={re.entity.entityId}
-            icon={domainIcon(re.domain)}
+            path={iconFor(re.entity)}
+            tint={tintFor(domainOf(re.entity.entityId))}
             name={re.name}
             state={formatState(re.entity)}
             active={isActive(re.entity)}
