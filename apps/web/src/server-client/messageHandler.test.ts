@@ -5,6 +5,7 @@ import {
   createStatusMessage,
   createSnapshotMessage,
   createEntityUpdateMessage,
+  createFavoritesMessage,
   type EntityState,
 } from '@aspect/shared';
 
@@ -26,6 +27,7 @@ describe('handleRawMessage', () => {
       areas: [],
       devices: [],
       registry: [],
+      favorites: [],
     });
   });
 
@@ -67,5 +69,10 @@ describe('handleRawMessage', () => {
     expect(() => handleRawMessage('not json')).not.toThrow();
     handleRawMessage(JSON.stringify({ type: 'mystery' }));
     expect(useConnectionStore.getState().serverStatus).toBeNull();
+  });
+
+  it('applies a favorites message', () => {
+    handleRawMessage(JSON.stringify(createFavoritesMessage(['light.a'])));
+    expect(useConnectionStore.getState().favorites).toEqual(['light.a']);
   });
 });

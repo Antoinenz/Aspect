@@ -1,4 +1,4 @@
-import { createCallServiceMessage } from '@aspect/shared';
+import { createCallServiceMessage, createSetFavoriteMessage } from '@aspect/shared';
 import { sendToServer } from './socket.js';
 
 /** Sends a Home Assistant service call to the server. */
@@ -9,4 +9,9 @@ export function callService(
   data?: Record<string, unknown>,
 ): void {
   sendToServer(createCallServiceMessage(domain, service, entityId, data));
+}
+
+/** Pins or unpins an entity as a favorite. */
+export function setFavorite(entityId: string, favorite: boolean): void {
+  sendToServer(createSetFavoriteMessage(entityId, favorite));
 }

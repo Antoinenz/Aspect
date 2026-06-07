@@ -31,5 +31,8 @@ export function handleRawMessage(raw: string): void {
     case 'entity_update':
       store.applyEntityUpdate(parsed.entities, parsed.removed);
       return;
+    case 'favorites':
+      store.applyFavorites(parsed.entityIds);
+      return;
   }
 }

@@ -8,7 +8,7 @@ vi.mock('./socket.js', () => ({
   },
 }));
 
-import { callService } from './commands.js';
+import { callService, setFavorite } from './commands.js';
 
 describe('callService', () => {
   beforeEach(() => {
@@ -24,5 +24,15 @@ describe('callService', () => {
       entityId: 'light.k',
       data: { brightness_pct: 50 },
     });
+  });
+});
+
+describe('setFavorite', () => {
+  beforeEach(() => {
+    sent.length = 0;
+  });
+  it('sends a set_favorite message', () => {
+    setFavorite('light.a', true);
+    expect(sent[0]).toEqual({ type: 'set_favorite', entityId: 'light.a', favorite: true });
   });
 });

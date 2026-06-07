@@ -11,6 +11,7 @@ const reset = (): void =>
     areas: [],
     devices: [],
     registry: [],
+    favorites: [],
   });
 
 const entity = (id: string, state: string): EntityState => ({
@@ -85,5 +86,10 @@ describe('connectionStore', () => {
   it('ignores optimistic patches for unknown entities', () => {
     useConnectionStore.getState().applyOptimistic('light.ghost', { state: 'on' });
     expect(useConnectionStore.getState().entities['light.ghost']).toBeUndefined();
+  });
+
+  it('applies a favorites list', () => {
+    useConnectionStore.getState().applyFavorites(['light.a', 'scene.movie']);
+    expect(useConnectionStore.getState().favorites).toEqual(['light.a', 'scene.movie']);
   });
 });

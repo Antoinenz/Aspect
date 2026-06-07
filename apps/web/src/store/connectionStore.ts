@@ -26,6 +26,8 @@ interface ConnectionState {
     devices: Device[];
     registry: RegistryEntry[];
   }) => void;
+  favorites: string[];
+  applyFavorites: (entityIds: string[]) => void;
   applyEntityUpdate: (entities: EntityState[], removed: string[]) => void;
   applyOptimistic: (
     entityId: string,
@@ -41,7 +43,9 @@ export const useConnectionStore = create<ConnectionState>((set) => ({
   areas: [],
   devices: [],
   registry: [],
+  favorites: [],
   setLink: (link) => set({ link }),
+  applyFavorites: (favorites) => set({ favorites }),
   applyStatus: (serverStatus, haConnected) => set({ serverStatus, haConnected }),
   applySnapshot: (snapshot) =>
     set({
