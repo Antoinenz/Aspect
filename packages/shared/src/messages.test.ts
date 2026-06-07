@@ -6,6 +6,8 @@ import {
   isServerToClientMessage,
   createCallServiceMessage,
   isClientToServerMessage,
+  createFavoritesMessage,
+  createSetFavoriteMessage,
   type StatusMessage,
 } from './messages.js';
 import type { EntityState } from './entities.js';
@@ -114,5 +116,23 @@ describe('createCallServiceMessage / isClientToServerMessage', () => {
     expect(isClientToServerMessage({ type: 'call_service', domain: 'light' })).toBe(false);
     expect(isClientToServerMessage({ type: 'nope' })).toBe(false);
     expect(isClientToServerMessage(null)).toBe(false);
+  });
+});
+
+describe('favorites messages', () => {
+  it('builds and validates a favorites (server) message', () => {
+    const msg = createFavoritesMessage(['light.a', 'light.b']);
+    expect(msg).toEqual({ type: 'favorites', entityIds: ['light.a', 'light.b'] });
+    expect(isServerToClientMessage(msg)).toBe(true);
+  });
+
+  it('builds and validates a set_favorite (client) message', () => {
+    const msg = createSetFavoriteMessage('light.a', true);
+    expect(msg).toEqual({ type: 'set_favorite', entityId: 'light.a', favorite: true });
+    expect(isClientToServerMessage(msg)).toBe(true);
+  });
+
+  it('rejects a malformed set_favorite', () => {
+    expect(isClientToServerMessage({ type: 'set_favorite', entityId: 'x' })).toBe(false);
   });
 });

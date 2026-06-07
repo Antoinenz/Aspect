@@ -43,11 +43,18 @@ export interface EntityUpdateMessage {
   removed: string[];
 }
 
+/** The full set of favorite entity IDs; sent on connect and on any change. */
+export interface FavoritesMessage {
+  type: 'favorites';
+  entityIds: string[];
+}
+
 /** Union of every message the server can send to a client. */
 export type ServerToClientMessage =
   | StatusMessage
   | SnapshotMessage
-  | EntityUpdateMessage;
+  | EntityUpdateMessage
+  | FavoritesMessage;
 
 /** Sent by a client immediately after connecting. */
 export interface HelloMessage {
@@ -64,8 +71,18 @@ export interface CallServiceMessage {
   data?: Record<string, unknown>;
 }
 
+/** Pins or unpins an entity as a favorite. */
+export interface SetFavoriteMessage {
+  type: 'set_favorite';
+  entityId: string;
+  favorite: boolean;
+}
+
 /** Union of every message a client can send to the server. */
-export type ClientToServerMessage = HelloMessage | CallServiceMessage;
+export type ClientToServerMessage =
+  | HelloMessage
+  | CallServiceMessage
+  | SetFavoriteMessage;
 
 export function createCallServiceMessage(
   domain: string,
@@ -74,6 +91,13 @@ export function createCallServiceMessage(
   data?: Record<string, unknown>,
 ): CallServiceMessage {
   return { type: 'call_service', domain, service, entityId, ...(data ? { data } : {}) };
+}
+
+export function createSetFavoriteMessage(
+  entityId: string,
+  favorite: boolean,
+): SetFavoriteMessage {
+  return { type: 'set_favorite', entityId, favorite };
 }
 
 export function isClientToServerMessage(
@@ -92,6 +116,8 @@ export function isClientToServerMessage(
         (c.data === undefined ||
           (typeof c.data === 'object' && c.data !== null))
       );
+    case 'set_favorite':
+      return typeof c.entityId === 'string' && typeof c.favorite === 'boolean';
     default:
       return false;
   }
@@ -120,6 +146,10 @@ export function createEntityUpdateMessage(
   return { type: 'entity_update', entities, removed };
 }
 
+export function createFavoritesMessage(entityIds: string[]): FavoritesMessage {
+  return { type: 'favorites', entityIds };
+}
+
 export function isServerToClientMessage(
   value: unknown,
 ): value is ServerToClientMessage {
@@ -142,6 +172,8 @@ export function isServerToClientMessage(
       );
     case 'entity_update':
       return Array.isArray(c.entities) && Array.isArray(c.removed);
+    case 'favorites':
+      return Array.isArray(c.entityIds);
     default:
       return false;
   }
