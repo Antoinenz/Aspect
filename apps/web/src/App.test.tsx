@@ -15,6 +15,7 @@ const base = {
   areas: [],
   devices: [],
   registry: [],
+  favorites: [],
 };
 
 describe('App', () => {
@@ -41,8 +42,8 @@ describe('App', () => {
     expect(screen.queryByText(/reconnecting/i)).not.toBeInTheDocument();
   });
 
-  it('always renders the dashboard shell (Home header)', () => {
+  it('always renders the tab shell (Summary tab)', () => {
     render(<App />);
-    expect(screen.getByText('Home')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: /summary/i })).toBeInTheDocument();
   });
 });

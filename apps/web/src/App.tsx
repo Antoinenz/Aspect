@@ -2,7 +2,7 @@ import { useEffect, type ReactElement } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { connectToServer } from './server-client/socket.js';
 import { useConnectionStore } from './store/connectionStore.js';
-import { Dashboard } from './dashboard/Dashboard.js';
+import { AppShell } from './dashboard/AppShell.js';
 
 export function App(): ReactElement {
   const link = useConnectionStore((s) => s.link);
@@ -25,7 +25,7 @@ export function App(): ReactElement {
 
   return (
     <>
-      <Dashboard />
+      <AppShell />
       <AnimatePresence>
         {!healthy && badge && (
           <motion.div
