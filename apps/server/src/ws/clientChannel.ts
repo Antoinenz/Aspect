@@ -5,12 +5,14 @@ import {
   createStatusMessage,
   createSnapshotMessage,
   createEntityUpdateMessage,
+  createFavoritesMessage,
   isClientToServerMessage,
   type EntityState,
   type ServerStatus,
   type ServerToClientMessage,
 } from '@aspect/shared';
 import type { HaCache } from '../cache/haCache.js';
+import type { FavoritesStore } from '../db/favoritesStore.js';
 
 export type ServiceCaller = (
   domain: string,
@@ -31,7 +33,10 @@ export class ClientHub {
   private haConnected = false;
   private serviceCaller: ServiceCaller | null = null;
 
-  constructor(private readonly cache: HaCache) {}
+  constructor(
+    private readonly cache: HaCache,
+    private readonly favorites: FavoritesStore,
+  ) {}
 
   setServiceCaller(caller: ServiceCaller): void {
     this.serviceCaller = caller;
@@ -48,6 +53,10 @@ export class ClientHub {
     if (parsed.type === 'call_service' && this.serviceCaller) {
       void this.serviceCaller(parsed.domain, parsed.service, parsed.entityId, parsed.data);
     }
+    if (parsed.type === 'set_favorite') {
+      this.favorites.set(parsed.entityId, parsed.favorite);
+      this.broadcastFavorites();
+    }
   }
 
   add(socket: WebSocket): void {
@@ -55,12 +64,17 @@ export class ClientHub {
     socket.on('close', () => this.clients.delete(socket));
     this.send(socket, createStatusMessage(this.status, this.haConnected));
     this.send(socket, createSnapshotMessage(this.cache.getSnapshot()));
+    this.send(socket, createFavoritesMessage(this.favorites.list()));
   }
 
   setStatus(status: ServerStatus, haConnected: boolean): void {
     this.status = status;
     this.haConnected = haConnected;
     this.broadcast(createStatusMessage(status, haConnected));
+  }
+
+  broadcastFavorites(): void {
+    this.broadcast(createFavoritesMessage(this.favorites.list()));
   }
 
   /** Re-send the full world (used after a registry change). */
@@ -84,6 +98,7 @@ export class ClientHub {
 
 export interface ClientChannelOptions {
   cache: HaCache;
+  favorites: FavoritesStore;
 }
 
 /**
@@ -95,7 +110,7 @@ export const clientChannel = fp(
     app: FastifyInstance,
     opts: ClientChannelOptions,
   ): Promise<void> {
-    const hub = new ClientHub(opts.cache);
+    const hub = new ClientHub(opts.cache, opts.favorites);
     app.decorate('clientHub', hub);
     app.decorate('haCache', opts.cache);
     app.get('/ws', { websocket: true }, (socket) => {

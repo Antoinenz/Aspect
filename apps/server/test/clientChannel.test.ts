@@ -8,6 +8,7 @@ import {
 import { buildApp } from '../src/app.js';
 import { HaCache } from '../src/cache/haCache.js';
 import { ClientHub } from '../src/ws/clientChannel.js';
+import { FavoritesStore } from '../src/db/favoritesStore.js';
 import { listen } from './helpers/wsTestClient.js';
 
 let app: FastifyInstance | undefined;
@@ -72,8 +73,8 @@ describe('GET /ws (ClientHub)', () => {
     await new Promise<void>((resolve, reject) => {
       socket.on('message', (data) => {
         msgs.push(JSON.parse(data.toString()) as ServerToClientMessage);
-        // After the initial status + snapshot, push an entity update.
-        if (msgs.length === 2) {
+        // After the initial status + snapshot + favorites, push an entity update.
+        if (msgs.length === 3) {
           app!.clientHub.broadcastEntityUpdate([
             {
               entityId: 'light.kitchen',
@@ -84,15 +85,15 @@ describe('GET /ws (ClientHub)', () => {
             },
           ]);
         }
-        if (msgs.length === 3) resolve();
+        if (msgs.length === 4) resolve();
       });
       socket.on('error', reject);
     });
     socket.close();
 
-    expect(msgs[2]?.type).toBe('entity_update');
-    if (msgs[2]?.type === 'entity_update') {
-      expect(msgs[2].entities[0]?.entityId).toBe('light.kitchen');
+    expect(msgs[3]?.type).toBe('entity_update');
+    if (msgs[3]?.type === 'entity_update') {
+      expect(msgs[3].entities[0]?.entityId).toBe('light.kitchen');
     }
   });
 });
@@ -100,7 +101,7 @@ describe('GET /ws (ClientHub)', () => {
 describe('ClientHub.handleClientMessage', () => {
   it('invokes the service caller for a call_service message', () => {
     const cache = new HaCache();
-    const hub = new ClientHub(cache);
+    const hub = new ClientHub(cache, new FavoritesStore(':memory:'));
     const calls: Array<[string, string, string, unknown]> = [];
     hub.setServiceCaller((domain, service, entityId, data) => {
       calls.push([domain, service, entityId, data]);
@@ -118,11 +119,23 @@ describe('ClientHub.handleClientMessage', () => {
   });
 
   it('ignores invalid messages without throwing', () => {
-    const hub = new ClientHub(new HaCache());
+    const hub = new ClientHub(new HaCache(), new FavoritesStore(':memory:'));
     hub.setServiceCaller(() => {
       throw new Error('should not be called');
     });
     expect(() => hub.handleClientMessage('not json')).not.toThrow();
     expect(() => hub.handleClientMessage(JSON.stringify({ type: 'x' }))).not.toThrow();
+  });
+});
+
+describe('ClientHub favorites', () => {
+  it('persists and rebroadcasts a set_favorite', () => {
+    const store = new FavoritesStore(':memory:');
+    const hub = new ClientHub(new HaCache(), store);
+    hub.handleClientMessage(
+      JSON.stringify({ type: 'set_favorite', entityId: 'light.a', favorite: true }),
+    );
+    expect(store.list()).toEqual(['light.a']);
+    store.close();
   });
 });

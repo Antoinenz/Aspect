@@ -2,6 +2,7 @@ import type { FastifyInstance } from 'fastify';
 import { buildApp } from './app.js';
 import type { AspectConfig } from './config.js';
 import { startHaConnection } from './ha/connection.js';
+import { FavoritesStore } from './db/favoritesStore.js';
 
 /**
  * Builds the app, starts listening, and (if configured) connects to Home
@@ -16,7 +17,10 @@ import { startHaConnection } from './ha/connection.js';
 export async function startServer(
   config: AspectConfig,
 ): Promise<FastifyInstance> {
-  const app = await buildApp({ webDir: config.webDir });
+  const app = await buildApp({
+    webDir: config.webDir,
+    favorites: new FavoritesStore(config.dbPath),
+  });
 
   let haStop: (() => void) | null = null;
   app.addHook('onClose', async () => {

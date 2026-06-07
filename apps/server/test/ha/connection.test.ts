@@ -2,6 +2,7 @@ import { describe, it, expect, afterEach, vi } from 'vitest';
 import { MockHaServer } from '../helpers/mockHaServer.js';
 import { HaCache } from '../../src/cache/haCache.js';
 import { ClientHub } from '../../src/ws/clientChannel.js';
+import { FavoritesStore } from '../../src/db/favoritesStore.js';
 import { startHaConnection, type HaConnectionHandle } from '../../src/ha/connection.js';
 
 let mock: MockHaServer | undefined;
@@ -41,7 +42,7 @@ describe('startHaConnection', () => {
       ],
     });
     const cache = new HaCache();
-    const hub = new ClientHub(cache);
+    const hub = new ClientHub(cache, new FavoritesStore(':memory:'));
     handle = await startHaConnection({
       url: mock.url,
       token: 'secret',
@@ -58,7 +59,7 @@ describe('startHaConnection', () => {
   it('applies a live state_changed event to the cache', async () => {
     mock = await MockHaServer.start({ token: 'secret', states: [] });
     const cache = new HaCache();
-    const hub = new ClientHub(cache);
+    const hub = new ClientHub(cache, new FavoritesStore(':memory:'));
     handle = await startHaConnection({ url: mock.url, token: 'secret', cache, hub });
 
     mock.emitStateChanged('switch.fan', {
