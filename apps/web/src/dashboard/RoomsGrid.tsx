@@ -13,7 +13,7 @@ export function RoomsOverview({ rooms, onOpen }: { rooms: Room[]; onOpen: (areaI
       <p className="mb-5 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">
         {stats.length} {stats.length === 1 ? 'room' : 'rooms'}
         {stats.some((s) => s.onCount > 0) && (
-          <> · <span className="text-[var(--color-text)]">{stats.filter((s) => s.onCount > 0).length} active</span></>
+          <> · {stats.filter((s) => s.onCount > 0).length} active</>
         )}
       </p>
       {stats.length === 0 ? (
