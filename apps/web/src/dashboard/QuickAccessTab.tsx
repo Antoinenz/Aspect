@@ -62,6 +62,9 @@ export function QuickAccessTab({ onSelect }: { onSelect: (entityId: string) => v
     .map((id) => entities[id])
     .filter((e): e is NonNullable<typeof e> => e !== undefined);
 
+  const isDevice = (id: string): boolean => domainOf(id) !== 'scene' && domainOf(id) !== 'script';
+  const deviceCount = tiles.filter((e) => isDevice(e.entityId)).length;
+
   function startEdit(): void {
     setOrder([...favorites]);
     setEditing(true);
@@ -99,7 +102,7 @@ export function QuickAccessTab({ onSelect }: { onSelect: (entityId: string) => v
         <div className="mb-5 flex items-center justify-between">
           <div>
             <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Quick Access</h1>
-            <p className="m-0 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">{order.length} {order.length === 1 ? 'device' : 'devices'}</p>
+            <p className="m-0 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">{order.filter(isDevice).length} {order.filter(isDevice).length === 1 ? 'device' : 'devices'}</p>
           </div>
           <button
             type="button"
@@ -136,7 +139,7 @@ export function QuickAccessTab({ onSelect }: { onSelect: (entityId: string) => v
       <div className="mb-5 flex items-center justify-between">
         <div>
           <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Quick Access</h1>
-          <p className="m-0 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">{tiles.length} {tiles.length === 1 ? 'device' : 'devices'}</p>
+          <p className="m-0 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">{deviceCount} {deviceCount === 1 ? 'device' : 'devices'}</p>
         </div>
         <button
           type="button"

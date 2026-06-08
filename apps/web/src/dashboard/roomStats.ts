@@ -9,10 +9,13 @@ export interface RoomStat {
 }
 
 export function roomsOverview(rooms: Room[]): RoomStat[] {
+  const isDevice = (re: Room['entities'][number]): boolean =>
+    re.domain !== 'scene' && re.domain !== 'script';
+
   return rooms.map((room) => ({
     areaId: room.areaId,
     name: room.name,
-    deviceCount: room.entities.length,
-    onCount: room.entities.filter((re) => isActive(re.entity)).length,
+    deviceCount: room.entities.filter(isDevice).length,
+    onCount: room.entities.filter((re) => isDevice(re) && isActive(re.entity)).length,
   }));
 }

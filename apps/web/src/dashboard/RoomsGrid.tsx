@@ -40,7 +40,7 @@ export function RoomsOverview({ rooms, onOpen }: { rooms: Room[]; onOpen: (areaI
                 </span>
                 <span className="mt-auto text-[14px] font-bold tracking-[-0.2px]">{s.name}</span>
                 <span className={`mt-0.5 text-[12px] font-medium ${active ? 'text-[#565a66]' : 'text-[var(--color-muted)]'}`}>
-                  {active ? <span className="font-semibold">{s.onCount} on</span> : 'All off'} · {s.deviceCount} devices
+                  {active ? <span className="font-semibold">{s.onCount} on</span> : 'All off'} · {s.deviceCount} {s.deviceCount === 1 ? 'device' : 'devices'}
                 </span>
               </button>
             );
