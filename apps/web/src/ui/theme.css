@@ -83,3 +83,20 @@
     *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
   }
 }
+
+/*
+ * Entrance animations are CSS keyframes (not JS-driven) so the hidden start
+ * state is painted synchronously on the first frame — no flash-before-animate.
+ * `backwards` fill shows the `from` keyframe during any delay, then reverts to
+ * the element's own styles after, leaving :active transforms free to work.
+ */
+@keyframes aspect-section-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes aspect-card-in {
+  from { opacity: 0; transform: translateY(12px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.section-enter { animation: aspect-section-in 0.26s ease-out backwards; }
+.card-enter { animation: aspect-card-in 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) backwards; }

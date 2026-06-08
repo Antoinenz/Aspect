@@ -1,5 +1,4 @@
 import { useMemo, useState, useCallback, useRef, type ReactElement } from 'react';
-import { motion } from 'motion/react';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { Nav } from '../nav/Nav.js';
 import type { Section } from '../nav/navItems.js';
@@ -41,12 +40,7 @@ export function AppShell(): ReactElement {
       <Nav section={section} onNavigate={navigate} />
       <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden px-5 pb-24 pt-[calc(24px+env(safe-area-inset-top))] md:px-8 md:pb-10">
         <div className="mx-auto max-w-[1100px]">
-          <motion.div
-            key={section + (roomId ?? '')}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-          >
+          <div key={section + (roomId ?? '')} className="section-enter">
             {section === 'home' && <SummaryTab onSelect={openEntity} />}
             {section === 'favorites' && <QuickAccessTab onSelect={openEntity} />}
             {section === 'rooms' && (
@@ -56,7 +50,7 @@ export function AppShell(): ReactElement {
             )}
             {section === 'map' && <MapPage />}
             {section === 'settings' && <SettingsPage />}
-          </motion.div>
+          </div>
         </div>
       </main>
       <EntityDetailSheet entityId={selectedId} onClose={closeSheet} />
