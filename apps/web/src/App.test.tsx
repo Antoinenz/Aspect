@@ -42,8 +42,8 @@ describe('App', () => {
     expect(screen.queryByText(/reconnecting/i)).not.toBeInTheDocument();
   });
 
-  it('always renders the tab shell (Summary tab)', () => {
+  it('always renders the nav shell (Home nav item)', () => {
     render(<App />);
-    expect(screen.getByRole('tab', { name: /summary/i })).toBeInTheDocument();
+    expect(screen.getAllByText('Home').length).toBeGreaterThan(0);
   });
 });
