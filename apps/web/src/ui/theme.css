@@ -110,8 +110,8 @@
 .card-enter { animation: aspect-card-in 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) backwards; }
 
 @keyframes tile-wiggle {
-  0%, 100% { transform: rotate(-1deg); }
-  50%       { transform: rotate(1deg); }
+  0%, 100% { transform: rotate(-2deg); }
+  50%       { transform: rotate(2deg); }
 }
 .tile-wiggle {
   animation: tile-wiggle 0.4s ease-in-out infinite;

@@ -40,7 +40,7 @@ function SortableTile({
         {...attributes}
         {...listeners}
         className={isDragging ? 'cursor-grabbing opacity-40' : 'cursor-grab tile-wiggle'}
-        style={{ animationDelay: `${(index * 37) % 150}ms`, touchAction: 'none' }}
+        style={{ animationDelay: `-${(index * 97) % 400}ms`, touchAction: 'none' }}
       >
         <div className="pointer-events-none">
           <Tile
