@@ -36,8 +36,8 @@ export function AppShell(): ReactElement {
     <div className="flex h-dvh overflow-hidden">
       <Nav section={section} onNavigate={navigate} />
       <main className="flex-1 overflow-y-auto overflow-x-hidden px-5 pb-24 pt-[calc(24px+env(safe-area-inset-top))] md:px-8 md:pb-10">
-        <div className="mx-auto max-w-[1100px]">
-          <AnimatePresence mode="wait" initial={false}>
+        <div className="relative mx-auto max-w-[1100px]">
+          <AnimatePresence mode="popLayout" initial={false}>
             <motion.div
               key={section + (roomId ?? '')}
               initial={{ opacity: 0, y: 10 }}
