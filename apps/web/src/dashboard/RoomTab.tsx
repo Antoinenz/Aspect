@@ -1,11 +1,13 @@
 import { type ReactElement, useState } from 'react';
-import { mdiChevronLeft, mdiChevronRight } from '@mdi/js';
+import { mdiChevronLeft, mdiChevronRight, mdiPower, mdiStar, mdiStarOutline } from '@mdi/js';
 import { Tile } from '../ui/Tile.js';
 import { Icon } from '../ui/Icon.js';
 import { formatState, isActive, domainOf } from '../domain/entities.js';
 import { iconFor, tintFor } from '../domain/icons.js';
 import { tileAction } from '../domain/tileAction.js';
+import { callService } from '../server-client/commands.js';
 import { useConnectionStore } from '../store/connectionStore.js';
+import { useRoomFavourites } from './roomFavouritesStore.js';
 import type { Room, RoomEntity } from './rooms.js';
 
 export interface RoomTabProps {
@@ -96,6 +98,20 @@ export function RoomTab({ room, onBack, onSelect }: RoomTabProps): ReactElement 
 
   const activeCount = available.filter((re) => isActive(re.entity)).length;
 
+  const BULK_DOMAINS = new Set(['light', 'switch', 'fan']);
+  const controllable = available.filter((re) => BULK_DOMAINS.has(re.domain));
+  const anyActive = controllable.some((re) => isActive(re.entity));
+
+  const isFav = useRoomFavourites((s) => s.isFav(room.areaId));
+  const toggleFav = useRoomFavourites((s) => s.toggle);
+
+  function turnAll(): void {
+    const svc = anyActive ? 'turn_off' : 'turn_on';
+    for (const re of controllable) callService(re.domain, svc, re.entity.entityId);
+  }
+
+  const chipClass = 'flex items-center gap-1.5 rounded-[11px] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-[12.5px] font-semibold text-[var(--color-muted)] backdrop-blur-[var(--blur-frost)] transition-colors hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40';
+
   return (
     <div>
       <header className="mb-6">
@@ -116,6 +132,18 @@ export function RoomTab({ room, onBack, onSelect }: RoomTabProps): ReactElement 
           )}
           {available.length} {available.length === 1 ? 'accessory' : 'accessories'} · {activeCount} active
           {unavailable.length > 0 && ` · ${unavailable.length} unavailable`}
+        </div>
+        <div className="mt-3 flex gap-2">
+          {controllable.length > 0 && (
+            <button type="button" onClick={turnAll} className={chipClass}>
+              <Icon path={mdiPower} size={15} />
+              {anyActive ? 'Turn off' : 'Turn on'}
+            </button>
+          )}
+          <button type="button" onClick={() => toggleFav(room.areaId)} className={chipClass}>
+            <Icon path={isFav ? mdiStar : mdiStarOutline} size={15} color={isFav ? '#ffd27d' : undefined} />
+            {isFav ? 'Favourited' : 'Favourite'}
+          </button>
         </div>
       </header>
       <div className="flex flex-col gap-7">
