@@ -78,9 +78,9 @@ export function QuickAccessTab({ onSelect }: { onSelect: (entityId: string) => v
 
   if (tiles.length === 0 && !editing) {
     return (
-      <div className="grid gap-2">
+      <div className="flex h-[60vh] flex-col items-center justify-center gap-2 text-center">
         <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Quick Access</h1>
-        <p className="text-[15px] text-[var(--color-muted)]">
+        <p className="m-0 max-w-[260px] text-[15px] text-[var(--color-muted)]">
           No favorites yet. Open any device and tap the ☆ star to pin it here.
         </p>
       </div>
@@ -95,7 +95,10 @@ export function QuickAccessTab({ onSelect }: { onSelect: (entityId: string) => v
     return (
       <div>
         <div className="mb-5 flex items-center justify-between">
-          <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Quick Access</h1>
+          <div>
+            <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Quick Access</h1>
+            <p className="m-0 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">{order.length} {order.length === 1 ? 'device' : 'devices'}</p>
+          </div>
           <button
             type="button"
             onClick={finishEdit}
@@ -129,7 +132,10 @@ export function QuickAccessTab({ onSelect }: { onSelect: (entityId: string) => v
   return (
     <div>
       <div className="mb-5 flex items-center justify-between">
-        <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Quick Access</h1>
+        <div>
+          <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Quick Access</h1>
+          <p className="m-0 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">{tiles.length} {tiles.length === 1 ? 'device' : 'devices'}</p>
+        </div>
         <button
           type="button"
           onClick={startEdit}
