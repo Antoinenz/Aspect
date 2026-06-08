@@ -12,6 +12,9 @@ export function RoomsOverview({ rooms, onOpen }: { rooms: Room[]; onOpen: (areaI
       <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Rooms</h1>
       <p className="mb-5 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">
         {stats.length} {stats.length === 1 ? 'room' : 'rooms'}
+        {stats.some((s) => s.onCount > 0) && (
+          <> · <span className="text-[var(--color-text)]">{stats.filter((s) => s.onCount > 0).length} active</span></>
+        )}
       </p>
       {stats.length === 0 ? (
         <p className="text-[15px] text-[var(--color-muted)]">No rooms to show yet.</p>
