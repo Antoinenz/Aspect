@@ -67,9 +67,11 @@ const entityList: EntityState[] = [
   // ── Bathroom ─────────────────────────────────────────────────
   e('light.bathroom_main',          'off', { friendly_name: 'Main Light' }),
   e('sensor.bathroom_temp',         '24',  { friendly_name: 'Temperature', device_class: 'temperature', unit_of_measurement: '°C' }),
+  e('sensor.bathroom_humidity',     '62',  { friendly_name: 'Humidity',    device_class: 'humidity',    unit_of_measurement: '%' }),
   e('fan.bathroom_extractor',       'on',  { friendly_name: 'Extractor Fan' }),
 
   // ── Whole-home ───────────────────────────────────────────────
+  e('cover.garage',                 'closed', { friendly_name: 'Garage Door', device_class: 'garage' }),
   e('lock.front_door',              'unlocked', { friendly_name: 'Front Door' }),
   e('person.alice',                 'home',     { friendly_name: 'Alice' }),
   e('person.bob',                   'not_home', { friendly_name: 'Bob' }),
@@ -111,8 +113,10 @@ export const DEMO_REGISTRY: RegistryEntry[] = [
   // Bathroom
   reg('light.bathroom_main',          'bathroom'),
   reg('sensor.bathroom_temp',         'bathroom'),
+  reg('sensor.bathroom_humidity',     'bathroom'),
   reg('fan.bathroom_extractor',       'bathroom'),
   // Whole-home (no area)
+  reg('cover.garage',                 null),
   reg('lock.front_door',              null),
   reg('person.alice',                 null),
   reg('person.bob',                   null),

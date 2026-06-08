@@ -4,6 +4,7 @@ import {
   mdiGestureTapButton, mdiFormatListBulleted, mdiTuneVertical, mdiSpeaker,
   mdiThermometer, mdiWaterPercent, mdiFlash, mdiBattery, mdiMotionSensor, mdiDoorOpen,
   mdiWeatherPartlyCloudy, mdiToggleSwitchVariant, mdiHelpCircleOutline,
+  mdiGarage, mdiGate,
 } from '@mdi/js';
 import { domainOf } from './entities.js';
 import type { EntityState } from '@aspect/shared';
@@ -34,13 +35,24 @@ const SENSOR_CLASS_ICON: Record<string, string> = {
   window: mdiDoorOpen,
 };
 
-/** Best MDI path for an entity, using device_class for sensors. */
+const COVER_CLASS_ICON: Record<string, string> = {
+  garage: mdiGarage,
+  gate: mdiGate,
+  door: mdiDoorOpen,
+  window: mdiDoorOpen,
+};
+
+/** Best MDI path for an entity, using device_class for sensors and covers. */
 export function iconFor(entity: EntityState): string {
   const domain = domainOf(entity.entityId);
   if (domain === 'sensor' || domain === 'binary_sensor') {
     const dc = entity.attributes.device_class;
     if (typeof dc === 'string' && SENSOR_CLASS_ICON[dc]) return SENSOR_CLASS_ICON[dc]!;
     return domain === 'binary_sensor' ? mdiMotionSensor : mdiThermometer;
+  }
+  if (domain === 'cover') {
+    const dc = entity.attributes.device_class;
+    if (typeof dc === 'string' && COVER_CLASS_ICON[dc]) return COVER_CLASS_ICON[dc]!;
   }
   if (domain === 'weather') return mdiWeatherPartlyCloudy;
   return DOMAIN_ICON[domain] ?? mdiHelpCircleOutline;

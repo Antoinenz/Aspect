@@ -2,9 +2,13 @@ import { useMemo, useState, type ReactElement } from 'react';
 import {
   mdiThermostat, mdiShieldCheckOutline, mdiPlayCircleOutline, mdiAccount,
   mdiAlertCircleOutline, mdiWeatherPartlyCloudy, mdiBellOutline, mdiBell, mdiPower,
+  mdiLightbulbOutline,
 } from '@mdi/js';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { buildSummary } from './summary.js';
+import { hasCategory, type FilterKind } from './filterView.js';
+import { FilterPanel } from './FilterPanel.js';
+import type { Room } from './rooms.js';
 import { Icon } from '../ui/Icon.js';
 import { StatusPill } from '../ui/StatusPill.js';
 import { Tile } from '../ui/Tile.js';
@@ -20,13 +24,23 @@ const ALERT_ICON = {
 
 const chipClass = 'flex items-center gap-1.5 rounded-[13px] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-[13px] font-semibold text-[var(--color-muted)] backdrop-blur-[var(--blur-frost)] hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40';
 
-export function SummaryTab({ onSelect }: { onSelect: (entityId: string) => void }): ReactElement {
+export function SummaryTab({
+  rooms,
+  onSelect,
+}: {
+  rooms: Room[];
+  onSelect: (entityId: string) => void;
+}): ReactElement {
   const entities = useConnectionStore((s) => s.entities);
   const registry = useConnectionStore((s) => s.registry);
   const devices = useConnectionStore((s) => s.devices);
   const optimistic = useConnectionStore((s) => s.applyOptimistic);
   const s = useMemo(() => buildSummary(entities, registry, devices), [entities, registry, devices]);
   const [showAlerts, setShowAlerts] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<FilterKind | null>(null);
+
+  const toggleFilter = (kind: FilterKind): void =>
+    setActiveFilter((f) => (f === kind ? null : kind));
 
   function handleAlertClick(entityId: string): void {
     setShowAlerts(false);
@@ -49,6 +63,25 @@ export function SummaryTab({ onSelect }: { onSelect: (entityId: string) => void 
       }
     }
   }
+
+  // Category presence — determines which pills to show.
+  const hasLights = useMemo(() => hasCategory(rooms, 'lights'), [rooms]);
+  const hasClimate = useMemo(() => hasCategory(rooms, 'climate'), [rooms]);
+  const hasSecurity = useMemo(() => hasCategory(rooms, 'security'), [rooms]);
+  const hasPlaying = useMemo(() => hasCategory(rooms, 'playing'), [rooms]);
+  const hasPills = hasLights || hasClimate || hasSecurity || hasPlaying;
+
+  // Pill summary values.
+  const lightValue = s.lightsOn.length > 0 ? `${s.lightsOn.length} on` : 'All off';
+  const climateValue = s.climate?.range ?? (s.climate ? `${s.climate.count} thermostats` : 'Shading');
+  const securityValue = s.security
+    ? (s.security.openings > 0
+      ? `${s.security.openings} open`
+      : s.security.unlocked > 0
+        ? `${s.security.unlocked} unlocked`
+        : 'All secure')
+    : 'All secure';
+  const playingValue = s.playing > 0 ? `${s.playing} playing` : 'Idle';
 
   const subtitle: string[] = [];
   if (s.deviceCount > 0) subtitle.push(`${s.deviceCount} ${s.deviceCount === 1 ? 'device' : 'devices'}`);
@@ -125,22 +158,57 @@ export function SummaryTab({ onSelect }: { onSelect: (entityId: string) => void 
         </div>
       </div>
 
-      {/* Status pills */}
-      <div className="-mx-5 flex gap-[9px] overflow-x-auto px-5 pb-1">
-        {s.climate && (
-          <StatusPill path={mdiThermostat} label="Climate" value={s.climate.range ?? `${s.climate.count}`} />
-        )}
-        {s.security && (
-          <StatusPill path={mdiShieldCheckOutline} label="Security"
-            value={s.security.openings ? `${s.security.openings} open` : s.security.unlocked ? `${s.security.unlocked} unlocked` : 'All secure'} />
-        )}
-        {s.playing > 0 && (
-          <StatusPill path={mdiPlayCircleOutline} label="Playing" value={`${s.playing}`} />
-        )}
-      </div>
+      {/* Filter pills — always shown when the home has entities in any category */}
+      {hasPills && (
+        <div className="-mx-5 flex gap-[9px] overflow-x-auto px-5 pb-1">
+          {hasLights && (
+            <StatusPill
+              path={mdiLightbulbOutline}
+              label="Lights"
+              value={lightValue}
+              active={activeFilter === 'lights'}
+              onClick={() => toggleFilter('lights')}
+            />
+          )}
+          {hasClimate && (
+            <StatusPill
+              path={mdiThermostat}
+              label="Climate"
+              value={climateValue}
+              active={activeFilter === 'climate'}
+              onClick={() => toggleFilter('climate')}
+            />
+          )}
+          {hasSecurity && (
+            <StatusPill
+              path={mdiShieldCheckOutline}
+              label="Security"
+              value={securityValue}
+              active={activeFilter === 'security'}
+              onClick={() => toggleFilter('security')}
+            />
+          )}
+          {hasPlaying && (
+            <StatusPill
+              path={mdiPlayCircleOutline}
+              label="Playing"
+              value={playingValue}
+              active={activeFilter === 'playing'}
+              onClick={() => toggleFilter('playing')}
+            />
+          )}
+        </div>
+      )}
 
-      {/* Presence */}
-      {s.people.length > 0 && (
+      {/* Filter panel — replaces normal summary sections when a pill is active */}
+      {activeFilter && (
+        <div key={activeFilter} className="filter-enter">
+          <FilterPanel kind={activeFilter} rooms={rooms} onSelect={onSelect} />
+        </div>
+      )}
+
+      {/* Normal summary sections — presence and climate overview */}
+      {!activeFilter && s.people.length > 0 && (
         <section className="grid gap-2.5">
           <h2 className="m-0 text-[15px] font-bold text-[var(--color-muted)]">Who&apos;s home</h2>
           <div className="flex flex-wrap gap-2.5">
@@ -157,8 +225,7 @@ export function SummaryTab({ onSelect }: { onSelect: (entityId: string) => void 
         </section>
       )}
 
-      {/* Climate */}
-      {(s.weather || s.thermostats.length > 0) && (
+      {!activeFilter && (s.weather || s.thermostats.length > 0) && (
         <section className="grid gap-2.5">
           <h2 className="m-0 text-[15px] font-bold text-[var(--color-muted)]">Climate</h2>
           <div className="grid gap-[13px] [grid-template-columns:repeat(auto-fill,minmax(150px,1fr))]">
