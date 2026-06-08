@@ -67,6 +67,9 @@ describe('formatState', () => {
   it('shows a friendly label for unavailable', () => {
     expect(formatState(e('light.x', 'unavailable'))).toBe('Unavailable');
   });
+  it('returns empty string for unknown state (scenes etc.)', () => {
+    expect(formatState(e('scene.movie', 'unknown'))).toBe('');
+  });
   it('replaces underscores with spaces in the fallback', () => {
     expect(formatState(e('climate.hvac', 'heat_cool'))).toBe('Heat cool');
   });

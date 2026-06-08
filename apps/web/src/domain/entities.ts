@@ -62,7 +62,7 @@ function capitalize(s: string): string {
 
 export function formatState(entity: EntityState): string {
   if (entity.state === 'unavailable') return 'Unavailable';
-  if (entity.state === 'unknown') return 'Unknown';
+  if (entity.state === 'unknown') return '';
 
   const domain = domainOf(entity.entityId);
 

@@ -1,5 +1,7 @@
-import type { ReactElement } from 'react';
+import { type ReactElement, useState } from 'react';
+import { mdiChevronRight } from '@mdi/js';
 import { Tile } from '../ui/Tile.js';
+import { Icon } from '../ui/Icon.js';
 import { formatState, isActive, domainOf } from '../domain/entities.js';
 import { iconFor, tintFor } from '../domain/icons.js';
 import type { Room, RoomEntity } from './rooms.js';
@@ -9,7 +11,6 @@ export interface RoomTabProps {
   onSelect: (entity: RoomEntity) => void;
 }
 
-/** Display order and labels for domain groups. Domains in the same group share a heading. */
 const GROUPS: { label: string; domains: string[] }[] = [
   { label: 'Lights', domains: ['light'] },
   { label: 'Climate', domains: ['climate'] },
@@ -23,7 +24,6 @@ const GROUPS: { label: string; domains: string[] }[] = [
   { label: 'Scripts', domains: ['script'] },
 ];
 
-/** Any domain not listed above falls in here. */
 const KNOWN_DOMAINS = new Set(GROUPS.flatMap((g) => g.domains));
 
 function EntityGrid({ entities, onSelect }: { entities: RoomEntity[]; onSelect: (re: RoomEntity) => void }): ReactElement {
@@ -46,29 +46,58 @@ function EntityGrid({ entities, onSelect }: { entities: RoomEntity[]; onSelect: 
   );
 }
 
+function UnavailableSection({ entities, onSelect }: { entities: RoomEntity[]; onSelect: (re: RoomEntity) => void }): ReactElement {
+  const [open, setOpen] = useState(false);
+  return (
+    <section>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        aria-expanded={open}
+        className="flex items-center gap-1.5 rounded-[8px] text-[12px] font-bold uppercase tracking-[0.6px] text-[var(--color-muted)] hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+      >
+        <span className={`transition-transform duration-200 ${open ? 'rotate-90' : ''}`}>
+          <Icon path={mdiChevronRight} size={15} />
+        </span>
+        {entities.length} Unavailable
+      </button>
+      {open && (
+        <div className="mt-3 section-enter">
+          <EntityGrid entities={entities} onSelect={onSelect} />
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function RoomTab({ room, onSelect }: RoomTabProps): ReactElement {
+  const available = room.entities.filter((re) => re.entity.state !== 'unavailable');
+  const unavailable = room.entities.filter((re) => re.entity.state === 'unavailable');
+
   const byDomain = new Map<string, RoomEntity[]>();
-  for (const re of room.entities) {
+  for (const re of available) {
     const list = byDomain.get(re.domain);
     if (list) list.push(re);
     else byDomain.set(re.domain, [re]);
   }
 
-  // Build ordered sections from GROUPS, then append any unlisted domains.
   const sections: { label: string; entities: RoomEntity[] }[] = [];
   for (const group of GROUPS) {
     const entities = group.domains.flatMap((d) => byDomain.get(d) ?? []);
     if (entities.length > 0) sections.push({ label: group.label, entities });
   }
-  const otherEntities = room.entities.filter((re) => !KNOWN_DOMAINS.has(re.domain));
+  const otherEntities = available.filter((re) => !KNOWN_DOMAINS.has(re.domain));
   if (otherEntities.length > 0) sections.push({ label: 'Other', entities: otherEntities });
+
+  const activeCount = available.filter((re) => isActive(re.entity)).length;
 
   return (
     <div>
       <header className="mb-6">
         <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">{room.name}</h1>
         <p className="mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">
-          {room.entities.length} accessories · {room.entities.filter((r) => isActive(r.entity)).length} active
+          {available.length} {available.length === 1 ? 'accessory' : 'accessories'} · {activeCount} active
+          {unavailable.length > 0 && ` · ${unavailable.length} unavailable`}
         </p>
       </header>
       <div className="flex flex-col gap-7">
@@ -80,6 +109,9 @@ export function RoomTab({ room, onSelect }: RoomTabProps): ReactElement {
             <EntityGrid entities={s.entities} onSelect={onSelect} />
           </section>
         ))}
+        {unavailable.length > 0 && (
+          <UnavailableSection entities={unavailable} onSelect={onSelect} />
+        )}
       </div>
     </div>
   );
