@@ -99,23 +99,24 @@ export function RoomTab({ room, onBack, onSelect }: RoomTabProps): ReactElement 
   return (
     <div>
       <header className="mb-6">
-        <div className="flex items-center gap-2.5">
+        <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">{room.name}</h1>
+        <div className="mt-0.5 flex items-center text-[12.5px] font-medium text-[var(--color-muted)]">
           {onBack && (
-            <button
-              type="button"
-              onClick={onBack}
-              className="flex shrink-0 items-center gap-0.5 rounded-[6px] text-[var(--color-muted)] transition-colors hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-            >
-              <Icon path={mdiChevronLeft} size={20} />
-              <span className="text-[14px] font-semibold">Rooms</span>
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={onBack}
+                className="flex items-center gap-0.5 rounded-[4px] transition-colors hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+              >
+                <Icon path={mdiChevronLeft} size={14} />
+                Rooms
+              </button>
+              <span className="mx-1.5">·</span>
+            </>
           )}
-          <h1 className="m-0 truncate text-[26px] font-extrabold tracking-[-0.5px]">{room.name}</h1>
-        </div>
-        <p className="mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">
           {available.length} {available.length === 1 ? 'accessory' : 'accessories'} · {activeCount} active
           {unavailable.length > 0 && ` · ${unavailable.length} unavailable`}
-        </p>
+        </div>
       </header>
       <div className="flex flex-col gap-7">
         {sections.map((s) => (
