@@ -33,8 +33,10 @@ export function AppShell(): ReactElement {
         favorites: DEMO_FAVORITES,
       });
     } else {
-      // Clear demo data only; App.tsx reconnects the socket which will repopulate.
+      // Clear demo data; App.tsx reconnects the socket which will repopulate.
+      // serverStatus must be reset too so haOffline check in App.tsx works correctly.
       useConnectionStore.setState({
+        serverStatus: null,
         haConnected: false,
         entities: {},
         areas: [],
