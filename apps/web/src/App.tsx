@@ -21,8 +21,10 @@ export function App(): ReactElement {
     return connectToServer();
   }, [demo]);
 
-  // Server reachable but HA explicitly offline — show error with no delay.
-  const haOffline = !demo && link === 'connected' && serverStatus === 'online' && !haConnected;
+  // HA is offline: server reachable but HA is not.
+  // Guard on serverStatus !== null so we wait for the first status message
+  // before evaluating — avoids a false-positive before the server responds.
+  const haOffline = !demo && link === 'connected' && serverStatus !== null && !haConnected;
 
   // Server itself unreachable — show error only after grace period.
   const serverDown = !demo && link !== 'connected';
