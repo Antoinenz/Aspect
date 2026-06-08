@@ -24,6 +24,7 @@ export function AppShell(): ReactElement {
     if (demo) {
       useConnectionStore.setState({
         link: 'connected',
+        serverStatus: 'online',
         haConnected: true,
         entities: DEMO_ENTITIES,
         areas: DEMO_AREAS,
@@ -32,8 +33,8 @@ export function AppShell(): ReactElement {
         favorites: DEMO_FAVORITES,
       });
     } else {
+      // Clear demo data only; App.tsx reconnects the socket which will repopulate.
       useConnectionStore.setState({
-        link: 'disconnected',
         haConnected: false,
         entities: {},
         areas: [],

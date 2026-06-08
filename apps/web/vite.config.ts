@@ -9,6 +9,13 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
+      workbox: {
+        // Precache all built assets so the app loads offline.
+        globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+        // Serve cached index.html for navigation requests when the server is unreachable.
+        navigateFallback: 'index.html',
+        navigateFallbackDenylist: [/^\/ws/, /^\/health/, /^\/api/],
+      },
       manifest: {
         name: 'Aspect',
         short_name: 'Aspect',
