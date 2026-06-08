@@ -55,7 +55,7 @@ export function Tile({
           type="button"
           onClick={(e) => { e.stopPropagation(); onAction(); }}
           aria-label={`Toggle ${name}`}
-          className="absolute right-3.5 top-3.5 z-10 flex h-[42px] w-[42px] cursor-pointer items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
+          className="absolute left-3.5 top-3.5 z-10 flex h-[42px] w-[42px] cursor-pointer items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50"
           style={{ ...chipSq, background: iconBg }}
         >
           <Icon path={path} size={22} color={iconColor} />
@@ -63,20 +63,21 @@ export function Tile({
       ) : (
         <span
           aria-hidden
-          className="pointer-events-none absolute right-3.5 top-3.5 flex h-[42px] w-[42px] items-center justify-center"
+          className="pointer-events-none absolute left-3.5 top-3.5 flex h-[42px] w-[42px] items-center justify-center"
           style={{ ...chipSq, background: iconBg }}
         >
           <Icon path={path} size={22} color={iconColor} />
         </span>
       )}
 
+      {battery !== null && (
+        <span className={`pointer-events-none absolute right-3.5 top-3.5 text-[11px] font-semibold ${low ? 'text-[#ff8a8a]' : active ? 'text-[#7c8090]' : 'text-[rgba(235,238,245,0.55)]'}`}>
+          {battery}%
+        </span>
+      )}
+
       {/* Text content — pointer-events-none so clicks fall through to the press zone */}
       <div className="pointer-events-none flex flex-1 flex-col p-4">
-        {battery !== null && (
-          <span className={`text-[11px] font-semibold ${low ? 'text-[#ff8a8a]' : active ? 'text-[#7c8090]' : 'text-[rgba(235,238,245,0.55)]'}`}>
-            {battery}%
-          </span>
-        )}
         <span className={`mt-auto text-[14px] font-bold tracking-[-0.2px] ${active ? 'text-[#15161a]' : ''}`}>{name}</span>
         <span className={`mt-0.5 text-[12px] font-medium ${active ? 'text-[#565a66]' : 'text-[var(--color-muted)]'}`}>{state}</span>
       </div>
