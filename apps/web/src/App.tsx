@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactElement } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import { connectToServer } from './server-client/socket.js';
 import { useConnectionStore } from './store/connectionStore.js';
 import { useDemoStore } from './demo/demoStore.js';
@@ -35,8 +36,23 @@ export function App(): ReactElement {
     return () => clearTimeout(t);
   }, [serverDown]);
 
-  if (haOffline) return <ErrorScreen kind="ha" />;
-  if (serverDown && serverTimedOut) return <ErrorScreen kind="server" />;
+  const showError = haOffline || (serverDown && serverTimedOut);
+  const errorKind = haOffline ? 'ha' : 'server';
 
-  return <AppShell />;
+  return (
+    <AnimatePresence mode="wait">
+      {showError ? (
+        <ErrorScreen key={errorKind} kind={errorKind} />
+      ) : (
+        <motion.div
+          key="shell"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.22 }}
+        >
+          <AppShell />
+        </motion.div>
+      )}
+    </AnimatePresence>
+  );
 }
