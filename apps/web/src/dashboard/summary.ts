@@ -1,4 +1,4 @@
-import type { EntityState, RegistryEntry } from '@aspect/shared';
+import type { Device, EntityState, RegistryEntry } from '@aspect/shared';
 import { domainOf, friendlyName } from '../domain/entities.js';
 
 export interface PersonStatus {
@@ -35,7 +35,10 @@ const BATTERY_LOW = 20;
 export function buildSummary(
   entities: Record<string, EntityState>,
   registry: RegistryEntry[],
+  devices: Device[] = [],
 ): SummaryData {
+  const regByEntity = new Map(registry.map((r) => [r.entityId, r]));
+  const deviceById = new Map(devices.map((d) => [d.deviceId, d]));
   const regName = new Map(registry.map((r) => [r.entityId, r.name] as const));
   const nameOf = (e: EntityState): string =>
     friendlyName(e, regName.get(e.entityId) ?? null);
@@ -100,7 +103,9 @@ export function buildSummary(
         if (dc === 'battery') {
           const n = Number(e.state);
           if (Number.isFinite(n) && n <= BATTERY_LOW) {
-            alerts.push({ entityId: e.entityId, name: nameOf(e), kind: 'battery', detail: `${Math.round(n)}%` });
+            const deviceId = regByEntity.get(e.entityId)?.deviceId;
+            const deviceName = deviceId ? (deviceById.get(deviceId)?.name ?? null) : null;
+            alerts.push({ entityId: e.entityId, name: deviceName ?? nameOf(e), kind: 'battery', detail: `${Math.round(n)}%` });
           }
         }
         break;

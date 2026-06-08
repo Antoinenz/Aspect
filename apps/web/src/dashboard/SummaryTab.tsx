@@ -21,8 +21,9 @@ const ALERT_ICON = {
 export function SummaryTab({ onSelect }: { onSelect: (entityId: string) => void }): ReactElement {
   const entities = useConnectionStore((s) => s.entities);
   const registry = useConnectionStore((s) => s.registry);
+  const devices = useConnectionStore((s) => s.devices);
   const optimistic = useConnectionStore((s) => s.applyOptimistic);
-  const s = useMemo(() => buildSummary(entities, registry), [entities, registry]);
+  const s = useMemo(() => buildSummary(entities, registry, devices), [entities, registry, devices]);
 
   const empty =
     !s.climate && !s.security && s.playing === 0 && !s.weather &&

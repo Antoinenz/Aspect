@@ -45,7 +45,7 @@ describe('buildRooms filtering', () => {
 });
 
 describe('buildRooms battery', () => {
-  it('attaches a device battery to that device primary tile, not the battery sensor itself', () => {
+  it('hides battery sensor and shows its value on the primary tile (no entityCategory set)', () => {
     const entities = {
       'light.a': e('light.a'),
       'sensor.a_batt': e('sensor.a_batt', '42', { device_class: 'battery' }),
@@ -53,12 +53,29 @@ describe('buildRooms battery', () => {
     const devices: Device[] = [{ deviceId: 'd1', name: 'Lamp', areaId: 'k' }];
     const registry = [
       reg('light.a', { deviceId: 'd1', areaId: 'k' }),
-      reg('sensor.a_batt', { deviceId: 'd1', areaId: 'k', entityCategory: 'diagnostic', deviceClass: 'battery' }),
+      // No entityCategory — only deviceClass marks this as battery
+      reg('sensor.a_batt', { deviceId: 'd1', areaId: 'k', deviceClass: 'battery' }),
     ];
     const rooms = buildRooms(entities, [{ areaId: 'k', name: 'Kitchen' }], devices, registry);
     const tiles = rooms[0]!.entities;
     expect(tiles.map((t) => t.entity.entityId)).toEqual(['light.a']); // battery sensor not a tile
     expect(tiles[0]!.battery).toBe(42);
+  });
+
+  it('hides battery sensor when only the entity attribute marks it (no registry deviceClass)', () => {
+    const entities = {
+      'cover.blind': e('cover.blind', 'closed'),
+      'sensor.blind_batt': e('sensor.blind_batt', '18', { device_class: 'battery' }),
+    };
+    const devices: Device[] = [{ deviceId: 'd2', name: 'Blind', areaId: 'r' }];
+    const registry = [
+      reg('cover.blind', { deviceId: 'd2', areaId: 'r' }),
+      reg('sensor.blind_batt', { deviceId: 'd2', areaId: 'r' }), // deviceClass: null in registry
+    ];
+    const rooms = buildRooms(entities, [{ areaId: 'r', name: 'Room' }], devices, registry);
+    const tiles = rooms[0]!.entities;
+    expect(tiles.map((t) => t.entity.entityId)).toEqual(['cover.blind']);
+    expect(tiles[0]!.battery).toBe(18);
   });
 
   it('leaves battery null when the device has none', () => {

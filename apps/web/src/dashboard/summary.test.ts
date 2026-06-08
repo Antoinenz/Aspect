@@ -1,14 +1,15 @@
 import { describe, it, expect } from 'vitest';
 import { buildSummary } from './summary.js';
-import type { EntityState, RegistryEntry } from '@aspect/shared';
+import type { Device, EntityState, RegistryEntry } from '@aspect/shared';
 
 const e = (id: string, state: string, attrs: Record<string, unknown> = {}): EntityState => ({
   entityId: id, state, attributes: attrs, lastChanged: 't', lastUpdated: 't',
 });
-const reg = (entityId: string, name: string | null = null): RegistryEntry => ({
-  entityId, name, deviceId: null, areaId: null, platform: 'demo',
-  entityCategory: null, hidden: false, disabled: false, deviceClass: null,
+const reg = (entityId: string, opts: Partial<RegistryEntry> = {}): RegistryEntry => ({
+  entityId, name: null, deviceId: null, areaId: null, platform: 'demo',
+  entityCategory: null, hidden: false, disabled: false, deviceClass: null, ...opts,
 });
+const dev = (deviceId: string, name: string): Device => ({ deviceId, name, areaId: null });
 
 describe('buildSummary', () => {
   it('summarizes climate range, security, playing, people, weather', () => {
@@ -24,7 +25,7 @@ describe('buildSummary', () => {
       'light.k': e('light.k', 'on'),
       'light.l': e('light.l', 'off'),
     };
-    const s = buildSummary(entities, []);
+    const s = buildSummary(entities, [], []);
     expect(s.climate).toEqual({ count: 2, range: '21–23°' });
     expect(s.security).toEqual({ locks: 2, unlocked: 1, openings: 0 });
     expect(s.playing).toBe(1);
@@ -42,11 +43,28 @@ describe('buildSummary', () => {
       'sensor.batt': e('sensor.batt', '8', { device_class: 'battery' }),
       'sensor.batt_ok': e('sensor.batt_ok', '90', { device_class: 'battery' }),
     };
-    const registry = [reg('binary_sensor.door', 'Front Door'), reg('sensor.batt', 'Sensor Battery')];
+    const registry = [reg('binary_sensor.door', { name: 'Front Door' }), reg('sensor.batt', { name: 'Sensor Battery' })];
     const kinds = buildSummary(entities, registry).alerts.map((a) => a.kind).sort();
     expect(kinds).toEqual(['battery', 'open', 'safety', 'unlocked']);
     const door = buildSummary(entities, registry).alerts.find((a) => a.kind === 'open');
     expect(door?.name).toBe('Front Door');
+  });
+
+  it('uses device name for low-battery alerts when available', () => {
+    const entities = {
+      'sensor.iphone_batt': e('sensor.iphone_batt', '8', { device_class: 'battery' }),
+      'sensor.orphan_batt': e('sensor.orphan_batt', '5', { device_class: 'battery' }),
+    };
+    const registry = [
+      reg('sensor.iphone_batt', { name: 'iPhone Battery Level', deviceId: 'd1' }),
+      reg('sensor.orphan_batt', { name: 'Orphan Battery' }),
+    ];
+    const devices = [dev('d1', 'iPhone')];
+    const alerts = buildSummary(entities, registry, devices).alerts;
+    const iphone = alerts.find((a) => a.entityId === 'sensor.iphone_batt');
+    expect(iphone?.name).toBe('iPhone'); // device name, not entity name
+    const orphan = alerts.find((a) => a.entityId === 'sensor.orphan_batt');
+    expect(orphan?.name).toBe('Orphan Battery'); // fallback to entity name
   });
 
   it('returns empty/null sections when nothing matches', () => {

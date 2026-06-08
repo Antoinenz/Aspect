@@ -33,6 +33,8 @@ const priorityOf = (id: string): number => PRIORITY[domainOf(id)] ?? 50;
 function isVisible(entity: EntityState, reg: RegistryEntry | undefined): boolean {
   if (reg?.hidden || reg?.disabled) return false;
   if (reg?.entityCategory === 'diagnostic' || reg?.entityCategory === 'config') return false;
+  // Battery sensors are merged onto the device's primary tile — never shown standalone.
+  if (reg?.deviceClass === 'battery' || entity.attributes.device_class === 'battery') return false;
   const domain = domainOf(entity.entityId);
   if (NOISE_DOMAINS.has(domain)) return false;
   return isSupported(entity.entityId) || domain === 'media_player';
