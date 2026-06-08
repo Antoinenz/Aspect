@@ -132,73 +132,54 @@ export function QuickAccessTab({
 
   const chipClass = 'flex items-center gap-1.5 rounded-[13px] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-[13px] font-semibold text-[var(--color-muted)] backdrop-blur-[var(--blur-frost)] hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40';
 
-  const header = (
-    <div className="mb-5 flex items-center justify-between">
-      <div>
-        <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Favourites</h1>
-        <p className="m-0 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">
-          {editing
-            ? `${order.filter(isDevice).length} ${order.filter(isDevice).length === 1 ? 'device' : 'devices'}`
-            : `${deviceCount} ${deviceCount === 1 ? 'device' : 'devices'}`}
-        </p>
-      </div>
-      {editing ? (
-        <button
-          type="button"
-          onClick={finishEdit}
-          className="flex items-center gap-1.5 rounded-[13px] bg-[var(--color-frost)] px-3 py-1.5 text-[13px] font-bold text-[var(--color-frost-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-          style={{ cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties}
-        >
-          <Icon path={mdiCheck} size={16} />
-          Done
-        </button>
-      ) : (
-        <button
-          type="button"
-          onClick={startEdit}
-          aria-label="Edit favorites"
-          className={chipClass}
-          style={{ cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties}
-        >
-          <Icon path={mdiPencilOutline} size={16} />
-          Edit
-        </button>
-      )}
-    </div>
-  );
+  const editTiles = order
+    .map((id) => entities[id])
+    .filter((e): e is NonNullable<typeof e> => e !== undefined);
 
-  if (editing) {
-    const editTiles = order
-      .map((id) => entities[id])
-      .filter((e): e is NonNullable<typeof e> => e !== undefined);
-
-    return (
-      <div>
-        {header}
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={order} strategy={rectSortingStrategy}>
-            <div className="grid gap-[13px] [grid-template-columns:repeat(auto-fill,minmax(150px,1fr))]">
-              {editTiles.map((entity, index) => (
-                <SortableTile
-                  key={entity.entityId}
-                  entity={entity}
-                  index={index}
-                  onRemove={() => removeFromEdit(entity.entityId)}
-                />
-              ))}
-            </div>
-          </SortableContext>
-        </DndContext>
-      </div>
-    );
-  }
+  const hasRooms = favRoomStats.length > 0;
+  const hasDevices = editing ? editTiles.length > 0 : tiles.length > 0;
+  const showSectionLabels = hasRooms && hasDevices;
 
   return (
     <div className="flex flex-col gap-7">
-      {header}
-      {favRoomStats.length > 0 && (
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Favourites</h1>
+          <p className="m-0 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">
+            {editing
+              ? `${order.filter(isDevice).length} ${order.filter(isDevice).length === 1 ? 'device' : 'devices'}`
+              : `${deviceCount} ${deviceCount === 1 ? 'device' : 'devices'}`}
+          </p>
+        </div>
+        {editing ? (
+          <button
+            type="button"
+            onClick={finishEdit}
+            className="flex items-center gap-1.5 rounded-[13px] bg-[var(--color-frost)] px-3 py-1.5 text-[13px] font-bold text-[var(--color-frost-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            style={{ cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties}
+          >
+            <Icon path={mdiCheck} size={16} />
+            Done
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={startEdit}
+            aria-label="Edit favorites"
+            className={chipClass}
+            style={{ cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties}
+          >
+            <Icon path={mdiPencilOutline} size={16} />
+            Edit
+          </button>
+        )}
+      </div>
+
+      {/* Rooms — always shown, not editable */}
+      {hasRooms && (
         <section>
-          {tiles.length > 0 && <h2 className={`m-0 mb-3 ${sectionLabel}`}>Rooms</h2>}
+          {showSectionLabels && <h2 className={`m-0 mb-3 ${sectionLabel}`}>Rooms</h2>}
           <div className="grid gap-[13px] [grid-template-columns:repeat(auto-fill,minmax(150px,1fr))]">
             {favRoomStats.map((s) => (
               <Tile
@@ -215,24 +196,43 @@ export function QuickAccessTab({
           </div>
         </section>
       )}
-      {tiles.length > 0 && (
+
+      {/* Devices */}
+      {hasDevices && (
         <section>
-          {favRoomStats.length > 0 && <h2 className={`m-0 mb-3 ${sectionLabel}`}>Devices</h2>}
-          <div className="grid gap-[13px] [grid-template-columns:repeat(auto-fill,minmax(150px,1fr))]">
-            {tiles.map((entity) => (
-              <Tile
-                key={entity.entityId}
-                path={iconFor(entity)}
-                tint={tintFor(domainOf(entity.entityId))}
-                name={friendlyName(entity, null)}
-                state={formatState(entity)}
-                active={isActive(entity)}
-                wide={domainOf(entity.entityId) === 'climate' || domainOf(entity.entityId) === 'media_player'}
-                onAction={tileAction(entity, optimistic)}
-                onPress={() => onSelect(entity.entityId)}
-              />
-            ))}
-          </div>
+          {showSectionLabels && <h2 className={`m-0 mb-3 ${sectionLabel}`}>Devices</h2>}
+          {editing ? (
+            <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+              <SortableContext items={order} strategy={rectSortingStrategy}>
+                <div className="grid gap-[13px] [grid-template-columns:repeat(auto-fill,minmax(150px,1fr))]">
+                  {editTiles.map((entity, index) => (
+                    <SortableTile
+                      key={entity.entityId}
+                      entity={entity}
+                      index={index}
+                      onRemove={() => removeFromEdit(entity.entityId)}
+                    />
+                  ))}
+                </div>
+              </SortableContext>
+            </DndContext>
+          ) : (
+            <div className="grid gap-[13px] [grid-template-columns:repeat(auto-fill,minmax(150px,1fr))]">
+              {tiles.map((entity) => (
+                <Tile
+                  key={entity.entityId}
+                  path={iconFor(entity)}
+                  tint={tintFor(domainOf(entity.entityId))}
+                  name={friendlyName(entity, null)}
+                  state={formatState(entity)}
+                  active={isActive(entity)}
+                  wide={domainOf(entity.entityId) === 'climate' || domainOf(entity.entityId) === 'media_player'}
+                  onAction={tileAction(entity, optimistic)}
+                  onPress={() => onSelect(entity.entityId)}
+                />
+              ))}
+            </div>
+          )}
         </section>
       )}
     </div>

@@ -1,14 +1,11 @@
 import type { ReactElement } from 'react';
-import { mdiStar } from '@mdi/js';
-import { Icon } from '../ui/Icon.js';
 import { roomsOverview } from './roomStats.js';
 import { roomIcon } from './roomIcon.js';
-import { useRoomFavourites } from './roomFavouritesStore.js';
+import { Icon } from '../ui/Icon.js';
 import type { Room } from './rooms.js';
 import { SQUIRCLE } from '../ui/tokens.js';
 
 export function RoomsOverview({ rooms, onOpen }: { rooms: Room[]; onOpen: (areaId: string) => void }): ReactElement {
-  const favRooms = useRoomFavourites((s) => s.favRooms);
   const stats = roomsOverview(rooms);
   return (
     <div>
@@ -25,7 +22,6 @@ export function RoomsOverview({ rooms, onOpen }: { rooms: Room[]; onOpen: (areaI
         <div className="grid gap-[14px] [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
           {stats.map((s, i) => {
             const active = s.onCount > 0;
-            const fav = favRooms.has(s.areaId);
             return (
               <button
                 key={s.areaId}
@@ -39,20 +35,22 @@ export function RoomsOverview({ rooms, onOpen }: { rooms: Room[]; onOpen: (areaI
                 ].join(' ')}
                 style={{ cornerShape: `superellipse(${SQUIRCLE})`, animationDelay: `${i * 45}ms` } as React.CSSProperties}
               >
-                {fav && (
-                  <span className="absolute right-3 top-3">
-                    <Icon path={mdiStar} size={13} color="#ffd27d" />
-                  </span>
-                )}
                 <span
                   className={`flex h-[42px] w-[42px] items-center justify-center rounded-[13px] ${active ? 'bg-[#191c24]' : 'bg-white/10'}`}
                   style={{ cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties}
                 >
                   <Icon path={roomIcon(s.name)} size={22} color={active ? '#fff' : '#cfd3db'} />
                 </span>
+                {s.temperature !== null && (
+                  <span className={`absolute right-3 top-3 text-[12px] font-semibold tabular-nums ${active ? 'text-[#565a66]' : 'text-[var(--color-muted)]'}`}>
+                    {s.temperature}
+                  </span>
+                )}
                 <span className="mt-auto text-[14px] font-bold tracking-[-0.2px]">{s.name}</span>
                 <span className={`mt-0.5 text-[12px] font-medium ${active ? 'text-[#565a66]' : 'text-[var(--color-muted)]'}`}>
-                  {active ? <span className="font-semibold">{s.onCount} on</span> : 'All off'} · {s.deviceCount} {s.deviceCount === 1 ? 'device' : 'devices'}
+                  {active ? <span className="font-semibold">{s.onCount} on</span> : 'All off'}
+                  {s.openCount > 0 && ` · ${s.openCount} open`}
+                  {` · ${s.deviceCount} ${s.deviceCount === 1 ? 'device' : 'devices'}`}
                 </span>
               </button>
             );

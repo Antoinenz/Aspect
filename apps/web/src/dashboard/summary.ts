@@ -26,11 +26,18 @@ export interface SummaryData {
   thermostats: string[];
   lightsOn: string[];
   alerts: SummaryAlert[];
+  deviceCount: number;
+  unavailableCount: number;
 }
 
 const OPENING_CLASSES = new Set(['door', 'window', 'opening', 'garage_door']);
 const SAFETY_CLASSES = new Set(['smoke', 'gas', 'moisture', 'carbon_monoxide']);
 const BATTERY_LOW = 20;
+const NON_DEVICE_DOMAINS = new Set([
+  'scene', 'script', 'automation', 'group', 'update', 'event', 'conversation',
+  'tts', 'stt', 'sun', 'zone', 'persistent_notification', 'device_tracker',
+  'person', 'image', 'weather', 'timer', 'counter', 'tag', 'schedule',
+]);
 
 export function buildSummary(
   entities: Record<string, EntityState>,
@@ -119,6 +126,19 @@ export function buildSummary(
         ? `${Math.min(...targets)}°`
         : `${Math.min(...targets)}–${Math.max(...targets)}°`;
 
+  let deviceCount = 0;
+  let unavailableCount = 0;
+  for (const e of Object.values(entities)) {
+    const reg = regByEntity.get(e.entityId);
+    if (reg?.hidden || reg?.disabled) continue;
+    if (reg?.entityCategory === 'diagnostic' || reg?.entityCategory === 'config') continue;
+    const dc = typeof e.attributes.device_class === 'string' ? e.attributes.device_class : null;
+    if (dc === 'battery') continue;
+    if (NON_DEVICE_DOMAINS.has(domainOf(e.entityId))) continue;
+    deviceCount += 1;
+    if (e.state === 'unavailable') unavailableCount += 1;
+  }
+
   return {
     climate: thermostats.length ? { count: thermostats.length, range } : null,
     security: locks || openings ? { locks, unlocked, openings } : null,
@@ -128,5 +148,7 @@ export function buildSummary(
     thermostats,
     lightsOn,
     alerts,
+    deviceCount,
+    unavailableCount,
   };
 }

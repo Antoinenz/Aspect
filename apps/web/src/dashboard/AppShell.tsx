@@ -1,5 +1,7 @@
-import { useMemo, useState, useCallback, useRef, type ReactElement } from 'react';
+import { useMemo, useState, useCallback, useRef, useEffect, type ReactElement } from 'react';
 import { useConnectionStore } from '../store/connectionStore.js';
+import { useDemoStore } from '../demo/demoStore.js';
+import { DEMO_ENTITIES, DEMO_AREAS, DEMO_DEVICES, DEMO_REGISTRY, DEMO_FAVORITES } from '../demo/demoData.js';
 import { Nav } from '../nav/Nav.js';
 import type { Section } from '../nav/navItems.js';
 import { buildRooms } from './rooms.js';
@@ -16,6 +18,32 @@ export function AppShell(): ReactElement {
   const areas = useConnectionStore((s) => s.areas);
   const devices = useConnectionStore((s) => s.devices);
   const registry = useConnectionStore((s) => s.registry);
+  const demo = useDemoStore((s) => s.demo);
+
+  useEffect(() => {
+    if (demo) {
+      useConnectionStore.setState({
+        link: 'connected',
+        haConnected: true,
+        entities: DEMO_ENTITIES,
+        areas: DEMO_AREAS,
+        devices: DEMO_DEVICES,
+        registry: DEMO_REGISTRY,
+        favorites: DEMO_FAVORITES,
+      });
+    } else {
+      useConnectionStore.setState({
+        link: 'disconnected',
+        haConnected: false,
+        entities: {},
+        areas: [],
+        devices: [],
+        registry: [],
+        favorites: [],
+      });
+    }
+  }, [demo]);
+
   const rooms = useMemo(() => buildRooms(entities, areas, devices, registry), [entities, areas, devices, registry]);
 
   const [section, setSection] = useState<Section>(() => {

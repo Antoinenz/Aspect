@@ -1,22 +1,24 @@
-import { useMemo, type ReactElement } from 'react';
+import { useMemo, useState, type ReactElement } from 'react';
 import {
   mdiThermostat, mdiShieldCheckOutline, mdiPlayCircleOutline, mdiAccount,
-  mdiAlertCircleOutline, mdiLightbulbGroupOutline, mdiWeatherPartlyCloudy,
+  mdiAlertCircleOutline, mdiWeatherPartlyCloudy, mdiBellOutline, mdiBell, mdiPower,
 } from '@mdi/js';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { buildSummary } from './summary.js';
 import { Icon } from '../ui/Icon.js';
 import { StatusPill } from '../ui/StatusPill.js';
 import { Tile } from '../ui/Tile.js';
-import { ActionButton } from '../controls/ActionButton.js';
 import { iconFor, tintFor } from '../domain/icons.js';
-import { formatState, isActive, friendlyName } from '../domain/entities.js';
+import { formatState, isActive, friendlyName, domainOf } from '../domain/entities.js';
 import { callService } from '../server-client/commands.js';
+import { SQUIRCLE } from '../ui/tokens.js';
 
 const ALERT_ICON = {
   open: mdiAlertCircleOutline, unlocked: mdiShieldCheckOutline,
   safety: mdiAlertCircleOutline, battery: mdiAlertCircleOutline,
 } as const;
+
+const chipClass = 'flex items-center gap-1.5 rounded-[13px] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-[13px] font-semibold text-[var(--color-muted)] backdrop-blur-[var(--blur-frost)] hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40';
 
 export function SummaryTab({ onSelect }: { onSelect: (entityId: string) => void }): ReactElement {
   const entities = useConnectionStore((s) => s.entities);
@@ -24,26 +26,104 @@ export function SummaryTab({ onSelect }: { onSelect: (entityId: string) => void 
   const devices = useConnectionStore((s) => s.devices);
   const optimistic = useConnectionStore((s) => s.applyOptimistic);
   const s = useMemo(() => buildSummary(entities, registry, devices), [entities, registry, devices]);
+  const [showAlerts, setShowAlerts] = useState(false);
 
-  const empty =
-    !s.climate && !s.security && s.playing === 0 && !s.weather &&
-    s.people.length === 0 && s.thermostats.length === 0 &&
-    s.lightsOn.length === 0 && s.alerts.length === 0;
-
-  if (empty) {
-    return <p className="text-[15px] text-[var(--color-muted)]">Nothing to summarize yet.</p>;
+  function handleAlertClick(entityId: string): void {
+    setShowAlerts(false);
+    onSelect(entityId);
   }
 
-  const turnAllLightsOff = (): void => {
-    for (const id of s.lightsOn) {
-      optimistic(id, { state: 'off' });
-      callService('light', 'turn_off', id);
+  const anyLightsOn = s.lightsOn.length > 0;
+  const allLights = Object.values(entities).filter((e) => domainOf(e.entityId) === 'light');
+
+  function toggleLights(): void {
+    if (anyLightsOn) {
+      for (const id of s.lightsOn) {
+        optimistic(id, { state: 'off' });
+        callService('light', 'turn_off', id);
+      }
+    } else {
+      for (const e of allLights) {
+        optimistic(e.entityId, { state: 'on' });
+        callService('light', 'turn_on', e.entityId);
+      }
     }
-  };
+  }
+
+  const subtitle: string[] = [];
+  if (s.deviceCount > 0) subtitle.push(`${s.deviceCount} ${s.deviceCount === 1 ? 'device' : 'devices'}`);
+  if (s.lightsOn.length > 0) subtitle.push(`${s.lightsOn.length} ${s.lightsOn.length === 1 ? 'light' : 'lights'} on`);
+  if (s.unavailableCount > 0) subtitle.push(`${s.unavailableCount} not responding`);
 
   return (
     <div className="grid gap-6">
-      <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Home</h1>
+      {/* Header */}
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Home</h1>
+          {subtitle.length > 0 && (
+            <p className="m-0 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">
+              {subtitle.join(' · ')}
+            </p>
+          )}
+        </div>
+        <div className="flex shrink-0 items-start gap-2 pt-1">
+          {s.alerts.length > 0 && (
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setShowAlerts((v) => !v)}
+                className={chipClass}
+                style={{ cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties}
+              >
+                <span className="relative">
+                  <Icon path={showAlerts ? mdiBell : mdiBellOutline} size={16} color={showAlerts ? '#ffd27d' : undefined} />
+                  <span className="absolute -right-1.5 -top-1.5 flex h-[14px] min-w-[14px] items-center justify-center rounded-full bg-[#ff8a8a] px-0.5 text-[9px] font-bold leading-none text-white">
+                    {s.alerts.length}
+                  </span>
+                </span>
+                Alerts
+              </button>
+              {showAlerts && (
+                <>
+                  <div className="fixed inset-0 z-40" onClick={() => setShowAlerts(false)} />
+                  <div
+                    className="absolute right-0 top-[calc(100%+8px)] z-50 w-[272px] overflow-hidden rounded-[18px] border border-[#5a2e2e] bg-[rgba(22,14,14,0.96)] shadow-2xl backdrop-blur-[24px]"
+                    style={{ cornerShape: 'superellipse(4)' } as React.CSSProperties}
+                  >
+                    <p className="px-4 pb-1 pt-3 text-[11px] font-bold uppercase tracking-[0.6px] text-[#ff8a8a]/70">
+                      Needs attention
+                    </p>
+                    <div className="pb-1.5">
+                      {s.alerts.map((a) => (
+                        <button
+                          key={a.entityId}
+                          type="button"
+                          onClick={() => handleAlertClick(a.entityId)}
+                          className="flex w-full items-center gap-3 px-4 py-2.5 text-left hover:bg-white/5 focus:outline-none"
+                        >
+                          <Icon path={ALERT_ICON[a.kind]} size={18} color="#ff8a8a" />
+                          <span className="flex-1 text-[13px] font-semibold text-white">{a.name}</span>
+                          <span className="text-[12px] text-[#ff9a9a]">{a.detail}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+          <button
+            type="button"
+            onClick={toggleLights}
+            className={chipClass}
+            style={{ cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties}
+          >
+            <Icon path={mdiPower} size={16} />
+            {anyLightsOn ? 'Turn off' : 'Turn on'}
+          </button>
+        </div>
+      </div>
 
       {/* Status pills */}
       <div className="-mx-5 flex gap-[9px] overflow-x-auto px-5 pb-1">
@@ -77,25 +157,7 @@ export function SummaryTab({ onSelect }: { onSelect: (entityId: string) => void 
         </section>
       )}
 
-      {/* Alerts */}
-      {s.alerts.length > 0 && (
-        <section className="grid gap-2">
-          <h2 className="m-0 text-[15px] font-bold text-[var(--color-muted)]">Needs attention</h2>
-          <div className="grid gap-2">
-            {s.alerts.map((a) => (
-              <button key={a.entityId} type="button" onClick={() => onSelect(a.entityId)}
-                className="flex items-center gap-3 rounded-[16px] border border-[#5a2e2e] bg-[rgba(58,30,30,0.4)] px-4 py-3 text-left backdrop-blur-[18px] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-                style={{ cornerShape: 'superellipse(4)' } as React.CSSProperties}>
-                <Icon path={ALERT_ICON[a.kind]} size={20} color="#ff8a8a" />
-                <span className="flex-1 text-[14px] font-semibold">{a.name}</span>
-                <span className="text-[12px] text-[#ff9a9a]">{a.detail}</span>
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* Weather + thermostats */}
+      {/* Climate */}
       {(s.weather || s.thermostats.length > 0) && (
         <section className="grid gap-2.5">
           <h2 className="m-0 text-[15px] font-bold text-[var(--color-muted)]">Climate</h2>
@@ -117,18 +179,6 @@ export function SummaryTab({ onSelect }: { onSelect: (entityId: string) => void 
               );
             })}
           </div>
-        </section>
-      )}
-
-      {/* Activity */}
-      {s.lightsOn.length > 0 && (
-        <section className="flex items-center justify-between gap-3 rounded-[16px] border border-white/10 bg-[rgba(36,40,50,0.5)] px-4 py-3 backdrop-blur-[18px]"
-          style={{ cornerShape: 'superellipse(4)' } as React.CSSProperties}>
-          <span className="flex items-center gap-2.5 text-[14px] font-semibold">
-            <Icon path={mdiLightbulbGroupOutline} size={20} color="#ffd27d" />
-            {s.lightsOn.length} {s.lightsOn.length === 1 ? 'light' : 'lights'} on
-          </span>
-          <ActionButton onClick={turnAllLightsOff}>Turn all off</ActionButton>
         </section>
       )}
     </div>

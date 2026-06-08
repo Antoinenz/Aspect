@@ -3,9 +3,10 @@ import {
   mdiWeatherSunny, mdiWeatherNight, mdiThemeLightDark,
   mdiCheckCircle, mdiSync, mdiAlertCircleOutline,
   mdiAnimationPlay, mdiHomeOutline, mdiStarOutline,
-  mdiViewGridOutline, mdiMapMarkerRadiusOutline,
+  mdiViewGridOutline, mdiMapMarkerRadiusOutline, mdiFlask,
 } from '@mdi/js';
 import { useConnectionStore } from '../store/connectionStore.js';
+import { useDemoStore } from '../demo/demoStore.js';
 import { useThemeStore, type ThemeChoice } from './theme.js';
 import { useMotionStore, type MotionPref } from './motionStore.js';
 import { Icon } from '../ui/Icon.js';
@@ -189,6 +190,42 @@ function ConnectionCard(): ReactElement {
   );
 }
 
+function DeveloperCard(): ReactElement {
+  const demo = useDemoStore((s) => s.demo);
+  const setDemo = useDemoStore((s) => s.setDemo);
+
+  return (
+    <Card title="Developer">
+      <button
+        type="button"
+        onClick={() => setDemo(!demo)}
+        aria-pressed={demo}
+        className={[
+          'flex w-full items-center gap-3 px-3 py-2.5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
+          demo
+            ? 'bg-[var(--color-frost)] text-[var(--color-frost-text)]'
+            : 'border border-[var(--color-border)] text-[var(--color-muted)] hover:text-[var(--color-text)]',
+        ].join(' ')}
+        style={squircle(13)}
+      >
+        <Icon path={mdiFlask} size={20} color={demo ? 'var(--color-frost-text)' : 'var(--color-muted)'} />
+        <span>
+          <span className="block text-[13.5px] font-semibold">Demo mode</span>
+          <span className={['block text-[12px]', demo ? 'text-[var(--color-frost-muted)]' : 'text-[var(--color-muted)]'].join(' ')}>
+            Populate the UI with fake data — no connection needed
+          </span>
+        </span>
+        <span className={[
+          'ml-auto flex h-[26px] w-[44px] shrink-0 items-center rounded-full px-0.5 transition-colors duration-200',
+          demo ? 'bg-[#5fd08a] justify-end' : 'bg-white/15 justify-start',
+        ].join(' ')}>
+          <span className="h-[22px] w-[22px] rounded-full bg-white shadow-sm" />
+        </span>
+      </button>
+    </Card>
+  );
+}
+
 function AboutCard(): ReactElement {
   return (
     <Card title="About">
@@ -219,6 +256,7 @@ export function SettingsPage(): ReactElement {
         <MotionCard />
         <StartupCard />
         <ConnectionCard />
+        <DeveloperCard />
         <AboutCard />
       </div>
     </div>
