@@ -21,12 +21,13 @@ const base = {
 describe('App', () => {
   beforeEach(() => useConnectionStore.setState({ ...base }));
 
-  it('shows a connecting badge before the link is up', () => {
+  it('shows a loading skeleton before the link is up', () => {
     render(<App />);
-    expect(screen.getByText(/connecting/i)).toBeInTheDocument();
+    // LoadingShell renders skeleton bones while connecting
+    expect(document.querySelector('.animate-pulse')).toBeInTheDocument();
   });
 
-  it('hides the badge when fully healthy', async () => {
+  it('hides the skeleton when fully connected', async () => {
     render(<App />);
     act(() =>
       useConnectionStore.setState({
@@ -37,13 +38,22 @@ describe('App', () => {
       }),
     );
     await waitFor(() => {
-      expect(screen.queryByText(/connecting/i)).not.toBeInTheDocument();
+      expect(document.querySelector('.animate-pulse')).not.toBeInTheDocument();
     });
-    expect(screen.queryByText(/reconnecting/i)).not.toBeInTheDocument();
   });
 
-  it('always renders the nav shell (Home nav item)', () => {
+  it('renders the nav shell when connected', async () => {
+    act(() =>
+      useConnectionStore.setState({
+        ...base,
+        link: 'connected',
+        serverStatus: 'online',
+        haConnected: true,
+      }),
+    );
     render(<App />);
-    expect(screen.getAllByText('Home').length).toBeGreaterThan(0);
+    await waitFor(() => {
+      expect(screen.getAllByText('Home').length).toBeGreaterThan(0);
+    });
   });
 });

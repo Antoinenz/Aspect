@@ -29,8 +29,10 @@ describe('AppShell', () => {
   });
 
   it('navigates to Rooms overview, into a room, opens a tile, and back', async () => {
-    act(withKitchen);
     render(<AppShell />);
+    // AppShell's useEffect clears the store on mount when demo=false,
+    // so set kitchen data after the initial effects have flushed.
+    act(withKitchen);
     await userEvent.click(screen.getAllByText('Rooms')[0]!);
     // Overview shows the room card
     await userEvent.click(await screen.findByText('Kitchen'));

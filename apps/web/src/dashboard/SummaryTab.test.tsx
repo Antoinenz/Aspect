@@ -20,9 +20,10 @@ const base = {
 describe('SummaryTab', () => {
   beforeEach(() => { sent.length = 0; useConnectionStore.setState({ ...base }); });
 
-  it('shows an empty state when there is nothing to summarize', () => {
+  it('renders the Home heading with no active devices', () => {
     render(<SummaryTab onSelect={() => {}} />);
-    expect(screen.getByText(/nothing to summarize/i)).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Home' })).toBeInTheDocument();
+    expect(screen.queryByText(/device/i)).not.toBeInTheDocument();
   });
 
   it('renders an alert and opens it on click', async () => {
@@ -32,6 +33,7 @@ describe('SummaryTab', () => {
       entities: { 'binary_sensor.door': e('binary_sensor.door', 'on', { device_class: 'door' }) },
     });
     render(<SummaryTab onSelect={onSelect} />);
+    await userEvent.click(screen.getByText('Alerts'));
     await userEvent.click(screen.getByText(/door/i));
     expect(onSelect).toHaveBeenCalledWith('binary_sensor.door');
   });
@@ -39,7 +41,7 @@ describe('SummaryTab', () => {
   it('turns all lights off', async () => {
     useConnectionStore.setState({ ...base, entities: { 'light.a': e('light.a', 'on'), 'light.b': e('light.b', 'on') } });
     render(<SummaryTab onSelect={() => {}} />);
-    await userEvent.click(screen.getByRole('button', { name: /turn all off/i }));
+    await userEvent.click(screen.getByRole('button', { name: /turn off/i }));
     expect(sent).toHaveLength(2);
     expect(sent[0]).toEqual(['light', 'turn_off', 'light.a']);
   });

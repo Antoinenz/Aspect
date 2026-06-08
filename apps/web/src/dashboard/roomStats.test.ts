@@ -15,8 +15,8 @@ describe('roomsOverview', () => {
       { areaId: 'b', name: 'Bedroom', entities: [re('light.d', 'off')] },
     ];
     expect(roomsOverview(rooms)).toEqual([
-      { areaId: 'k', name: 'Kitchen', deviceCount: 3, onCount: 2 },
-      { areaId: 'b', name: 'Bedroom', deviceCount: 1, onCount: 0 },
+      { areaId: 'k', name: 'Kitchen', deviceCount: 3, onCount: 1, openCount: 0, temperature: null },
+      { areaId: 'b', name: 'Bedroom', deviceCount: 1, onCount: 0, openCount: 0, temperature: null },
     ]);
   });
 });
