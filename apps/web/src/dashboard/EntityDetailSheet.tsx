@@ -40,7 +40,7 @@ export function EntityDetailSheet({
             style={{ cornerShape: 'superellipse(4)' } as React.CSSProperties}
           >
             <Icon path={isFav ? mdiStar : mdiStarOutline} size={18} color={isFav ? '#ffd27d' : 'var(--color-muted)'} />
-            {isFav ? 'Pinned' : 'Pin to Quick'}
+            {isFav ? 'Favourited' : 'Favourite'}
           </button>
           <p style={{ margin: 0, fontSize: 15, color: 'var(--muted)' }}>
             {formatState(entity)}
