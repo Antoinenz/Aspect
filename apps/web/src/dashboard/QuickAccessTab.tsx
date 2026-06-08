@@ -84,7 +84,7 @@ export function QuickAccessTab({ onSelect }: { onSelect: (entityId: string) => v
   if (tiles.length === 0 && !editing) {
     return (
       <div className="flex h-[60vh] flex-col items-center justify-center gap-2 text-center">
-        <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Quick Access</h1>
+        <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Favourites</h1>
         <p className="m-0 max-w-[260px] text-[15px] text-[var(--color-muted)]">
           No favorites yet. Open any device and tap the ☆ star to pin it here.
         </p>
@@ -101,7 +101,7 @@ export function QuickAccessTab({ onSelect }: { onSelect: (entityId: string) => v
       <div>
         <div className="mb-5 flex items-center justify-between">
           <div>
-            <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Quick Access</h1>
+            <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Favourites</h1>
             <p className="m-0 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">{order.filter(isDevice).length} {order.filter(isDevice).length === 1 ? 'device' : 'devices'}</p>
           </div>
           <button
@@ -138,7 +138,7 @@ export function QuickAccessTab({ onSelect }: { onSelect: (entityId: string) => v
     <div>
       <div className="mb-5 flex items-center justify-between">
         <div>
-          <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Quick Access</h1>
+          <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Favourites</h1>
           <p className="m-0 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">{deviceCount} {deviceCount === 1 ? 'device' : 'devices'}</p>
         </div>
         <button

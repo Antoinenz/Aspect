@@ -111,7 +111,7 @@ function MotionCard(): ReactElement {
 
 const STARTUP_OPTIONS: { value: Section; label: string; icon: string }[] = [
   { value: 'home', label: 'Home', icon: mdiHomeOutline },
-  { value: 'favorites', label: 'Quick Access', icon: mdiStarOutline },
+  { value: 'favorites', label: 'Favourites', icon: mdiStarOutline },
   { value: 'rooms', label: 'Rooms', icon: mdiViewGridOutline },
   { value: 'map', label: 'Map', icon: mdiMapMarkerRadiusOutline },
 ];

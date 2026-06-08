@@ -14,7 +14,7 @@ export interface NavDestination {
 /** Primary destinations (top of the sidebar / left of the bottom bar). */
 export const NAV_ITEMS: NavDestination[] = [
   { id: 'home', label: 'Home', icon: mdiHomeOutline },
-  { id: 'favorites', label: 'Favorites', icon: mdiStarOutline },
+  { id: 'favorites', label: 'Favourites', icon: mdiStarOutline },
   { id: 'rooms', label: 'Rooms', icon: mdiViewGridOutline },
   { id: 'map', label: 'Map', icon: mdiMapMarkerRadiusOutline },
 ];
