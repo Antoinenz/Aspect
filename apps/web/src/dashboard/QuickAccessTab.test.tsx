@@ -40,7 +40,7 @@ describe('QuickAccessTab', () => {
     render(<QuickAccessTab onSelect={onSelect} />);
     expect(screen.getByText('Kitchen Lamp')).toBeInTheDocument();
     expect(screen.queryByText('Movie')).not.toBeInTheDocument();
-    await userEvent.click(screen.getByRole('button', { name: /kitchen lamp/i }));
+    await userEvent.click(screen.getByRole('button', { name: 'Kitchen Lamp' }));
     expect(onSelect).toHaveBeenCalledWith('light.kitchen_lamp');
   });
 

@@ -6,6 +6,7 @@ import { Tile } from '../ui/Tile.js';
 import { Icon } from '../ui/Icon.js';
 import { iconFor, tintFor } from '../domain/icons.js';
 import { formatState, isActive, friendlyName, domainOf } from '../domain/entities.js';
+import { tileAction } from '../domain/tileAction.js';
 import { setFavorite, reorderFavorites } from '../server-client/commands.js';
 import type { EntityState } from '@aspect/shared';
 import { SQUIRCLE } from '../ui/tokens.js';
@@ -53,6 +54,7 @@ function EditRow({ entity, onRemove }: { entity: EntityState; onRemove: () => vo
 export function QuickAccessTab({ onSelect }: { onSelect: (entityId: string) => void }): ReactElement {
   const favorites = useConnectionStore((s) => s.favorites);
   const entities = useConnectionStore((s) => s.entities);
+  const optimistic = useConnectionStore((s) => s.applyOptimistic);
   const [editing, setEditing] = useState(false);
   const [order, setOrder] = useState<string[]>([]);
 
@@ -157,6 +159,7 @@ export function QuickAccessTab({ onSelect }: { onSelect: (entityId: string) => v
             state={formatState(entity)}
             active={isActive(entity)}
             wide={domainOf(entity.entityId) === 'climate' || domainOf(entity.entityId) === 'media_player'}
+            onAction={tileAction(entity, optimistic)}
             onPress={() => onSelect(entity.entityId)}
           />
         ))}

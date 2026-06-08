@@ -35,7 +35,7 @@ describe('AppShell', () => {
     // Overview shows the room card
     await userEvent.click(await screen.findByText('Kitchen'));
     // Room view shows the tile; open it
-    await userEvent.click(await screen.findByRole('button', { name: /kitchen lamp/i }));
+    await userEvent.click(await screen.findByRole('button', { name: 'Kitchen Lamp' }));
     expect(await screen.findByRole('dialog', { name: /kitchen lamp/i })).toBeInTheDocument();
   });
 

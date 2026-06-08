@@ -4,6 +4,8 @@ import { Tile } from '../ui/Tile.js';
 import { Icon } from '../ui/Icon.js';
 import { formatState, isActive, domainOf } from '../domain/entities.js';
 import { iconFor, tintFor } from '../domain/icons.js';
+import { tileAction } from '../domain/tileAction.js';
+import { useConnectionStore } from '../store/connectionStore.js';
 import type { Room, RoomEntity } from './rooms.js';
 
 export interface RoomTabProps {
@@ -27,6 +29,7 @@ const GROUPS: { label: string; domains: string[] }[] = [
 const KNOWN_DOMAINS = new Set(GROUPS.flatMap((g) => g.domains));
 
 function EntityGrid({ entities, onSelect }: { entities: RoomEntity[]; onSelect: (re: RoomEntity) => void }): ReactElement {
+  const optimistic = useConnectionStore((s) => s.applyOptimistic);
   return (
     <div className="grid gap-[13px] [grid-template-columns:repeat(auto-fill,minmax(150px,1fr))]">
       {entities.map((re) => (
@@ -39,6 +42,7 @@ function EntityGrid({ entities, onSelect }: { entities: RoomEntity[]; onSelect: 
           active={isActive(re.entity)}
           wide={re.wide}
           battery={re.battery}
+          onAction={tileAction(re.entity, optimistic)}
           onPress={() => onSelect(re)}
         />
       ))}
