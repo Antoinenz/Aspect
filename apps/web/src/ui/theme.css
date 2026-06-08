@@ -31,6 +31,8 @@
       radial-gradient(130% 90% at 75% -10%, #3b4a63 0%, rgba(59,74,99,0) 55%),
       radial-gradient(120% 90% at 0% 110%, #4a3b30 0%, rgba(74,59,48,0) 50%),
       linear-gradient(180deg, #1a1e26 0%, #15161c 60%, #1b1812 100%);
+    --scrollbar-thumb: rgba(255, 255, 255, 0.14);
+    --scrollbar-thumb-hover: rgba(255, 255, 255, 0.28);
   }
 
   /* Shared light palette — applied for explicit light and for `auto` on a light OS. */
@@ -50,6 +52,8 @@
       radial-gradient(130% 90% at 75% -10%, #dfe6f2 0%, rgba(223,230,242,0) 55%),
       radial-gradient(120% 90% at 0% 110%, #f1e8dd 0%, rgba(241,232,221,0) 50%),
       linear-gradient(180deg, #f4f6fa 0%, #eef0f4 60%, #f6f2ec 100%);
+    --scrollbar-thumb: rgba(0, 0, 0, 0.13);
+    --scrollbar-thumb-hover: rgba(0, 0, 0, 0.24);
   }
 
   /* `auto` only goes light when the OS asks for it. */
@@ -69,6 +73,8 @@
         radial-gradient(130% 90% at 75% -10%, #3b4a63 0%, rgba(59,74,99,0) 55%),
         radial-gradient(120% 90% at 0% 110%, #4a3b30 0%, rgba(74,59,48,0) 50%),
         linear-gradient(180deg, #1a1e26 0%, #15161c 60%, #1b1812 100%);
+      --scrollbar-thumb: rgba(255, 255, 255, 0.14);
+      --scrollbar-thumb-hover: rgba(255, 255, 255, 0.28);
     }
   }
 
@@ -107,3 +113,22 @@
 :root[data-motion='reduced'] .section-enter,
 :root[data-motion='reduced'] .card-enter { animation: none; }
 :root[data-motion='reduced'] * { transition-duration: 0.01ms !important; }
+
+/*
+ * Custom scrollbar — thin, themed, no layout shift.
+ * scrollbar-gutter: stable on the scroll container reserves the gutter width
+ * even when no scrollbar is present, so switching between short and tall pages
+ * never shifts content horizontally.
+ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-corner { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--scrollbar-thumb-hover); }
