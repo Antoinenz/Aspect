@@ -1,5 +1,5 @@
-import { useMemo, useState, useCallback, type ReactElement } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { useMemo, useState, useCallback, useRef, type ReactElement } from 'react';
+import { motion } from 'motion/react';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { Nav } from '../nav/Nav.js';
 import type { Section } from '../nav/navItems.js';
@@ -22,10 +22,14 @@ export function AppShell(): ReactElement {
   const [section, setSection] = useState<Section>('home');
   const [roomId, setRoomId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const mainRef = useRef<HTMLElement>(null);
 
   const navigate = useCallback((s: Section) => {
     setSection(s);
     setRoomId(null);
+    if (mainRef.current && typeof mainRef.current.scrollTo === 'function') {
+      mainRef.current.scrollTo({ top: 0 });
+    }
   }, []);
   const closeSheet = useCallback(() => setSelectedId(null), []);
   const openEntity = useCallback((id: string) => setSelectedId(id), []);
@@ -35,27 +39,24 @@ export function AppShell(): ReactElement {
   return (
     <div className="flex h-dvh overflow-hidden">
       <Nav section={section} onNavigate={navigate} />
-      <main className="flex-1 overflow-y-auto overflow-x-hidden px-5 pb-24 pt-[calc(24px+env(safe-area-inset-top))] md:px-8 md:pb-10">
-        <div className="relative mx-auto max-w-[1100px]">
-          <AnimatePresence mode="popLayout" initial={false}>
-            <motion.div
-              key={section + (roomId ?? '')}
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -6 }}
-              transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-            >
-              {section === 'home' && <SummaryTab onSelect={openEntity} />}
-              {section === 'favorites' && <QuickAccessTab onSelect={openEntity} />}
-              {section === 'rooms' && (
-                openRoom
-                  ? <RoomView room={openRoom} onBack={() => setRoomId(null)} onSelect={(re) => openEntity(re.entity.entityId)} />
-                  : <RoomsOverview rooms={rooms} onOpen={(areaId) => setRoomId(areaId)} />
-              )}
-              {section === 'map' && <MapPage />}
-              {section === 'settings' && <SettingsPage />}
-            </motion.div>
-          </AnimatePresence>
+      <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden px-5 pb-24 pt-[calc(24px+env(safe-area-inset-top))] md:px-8 md:pb-10">
+        <div className="mx-auto max-w-[1100px]">
+          <motion.div
+            key={section + (roomId ?? '')}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+          >
+            {section === 'home' && <SummaryTab onSelect={openEntity} />}
+            {section === 'favorites' && <QuickAccessTab onSelect={openEntity} />}
+            {section === 'rooms' && (
+              openRoom
+                ? <RoomView room={openRoom} onBack={() => setRoomId(null)} onSelect={(re) => openEntity(re.entity.entityId)} />
+                : <RoomsOverview rooms={rooms} onOpen={(areaId) => setRoomId(areaId)} />
+            )}
+            {section === 'map' && <MapPage />}
+            {section === 'settings' && <SettingsPage />}
+          </motion.div>
         </div>
       </main>
       <EntityDetailSheet entityId={selectedId} onClose={closeSheet} />
