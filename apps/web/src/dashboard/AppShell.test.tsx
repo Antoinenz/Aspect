@@ -39,9 +39,9 @@ describe('AppShell', () => {
     expect(await screen.findByRole('dialog', { name: /kitchen lamp/i })).toBeInTheDocument();
   });
 
-  it('shows the Map placeholder', async () => {
+  it('shows the Map empty state when no one is located', async () => {
     render(<AppShell />);
     await userEvent.click(screen.getAllByText('Map')[0]!);
-    expect(await screen.findByText(/map is coming soon/i)).toBeInTheDocument();
+    expect(await screen.findByText(/no one with location sharing yet/i)).toBeInTheDocument();
   });
 });

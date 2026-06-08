@@ -9,10 +9,7 @@ import { RoomsOverview } from './RoomsGrid.js';
 import { RoomView } from './RoomView.js';
 import { EntityDetailSheet } from './EntityDetailSheet.js';
 import { SettingsPage } from '../settings/SettingsPage.js';
-
-function Placeholder({ text }: { text: string }): ReactElement {
-  return <p className="text-[15px] text-[var(--color-muted)]">{text}</p>;
-}
+import { MapPage } from '../map/MapPage.js';
 
 export function AppShell(): ReactElement {
   const entities = useConnectionStore((s) => s.entities);
@@ -46,7 +43,7 @@ export function AppShell(): ReactElement {
               ? <RoomView room={openRoom} onBack={() => setRoomId(null)} onSelect={(re) => openEntity(re.entity.entityId)} />
               : <RoomsOverview rooms={rooms} onOpen={(areaId) => setRoomId(areaId)} />
           )}
-          {section === 'map' && <Placeholder text="Map is coming soon." />}
+          {section === 'map' && <MapPage />}
           {section === 'settings' && <SettingsPage />}
         </div>
       </main>
