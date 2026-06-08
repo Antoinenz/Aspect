@@ -98,15 +98,33 @@
  * `backwards` fill shows the `from` keyframe during any delay, then reverts to
  * the element's own styles after, leaving :active transforms free to work.
  */
+/*
+ * Section transitions: a single keyframe reads --section-x/--section-y so that
+ * two classes (forward/backward) share one animation, and a media query switches
+ * the axis from vertical (desktop sidebar) to horizontal (mobile bottom bar).
+ */
 @keyframes aspect-section-in {
-  from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translate(var(--section-x, 0px), var(--section-y, 8px)); }
+  to   { opacity: 1; transform: translate(0, 0); }
 }
+
+/* Desktop: vertical axis. Forward → enter from below. Backward → enter from above. */
+.section-enter-forward  { --section-x: 0px; --section-y:  8px; }
+.section-enter-backward { --section-x: 0px; --section-y: -8px; }
+
+/* Mobile (<768 px): horizontal axis. Forward → enter from right. Backward → enter from left. */
+@media (max-width: 767px) {
+  .section-enter-forward  { --section-x:  8px; --section-y: 0px; }
+  .section-enter-backward { --section-x: -8px; --section-y: 0px; }
+}
+
+.section-enter-forward,
+.section-enter-backward { animation: aspect-section-in 0.26s ease-out backwards; }
+
 @keyframes aspect-card-in {
   from { opacity: 0; transform: translateY(12px) scale(0.98); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
-.section-enter { animation: aspect-section-in 0.26s ease-out backwards; }
 .card-enter { animation: aspect-card-in 0.34s cubic-bezier(0.22, 0.61, 0.36, 1) backwards; }
 
 @keyframes tile-wiggle {
@@ -119,7 +137,8 @@
 }
 
 /* Settings > Motion toggle: off */
-:root[data-motion='reduced'] .section-enter,
+:root[data-motion='reduced'] .section-enter-forward,
+:root[data-motion='reduced'] .section-enter-backward,
 :root[data-motion='reduced'] .card-enter,
 :root[data-motion='reduced'] .tile-wiggle { animation: none; }
 :root[data-motion='reduced'] * { transition-duration: 0.01ms !important; }
