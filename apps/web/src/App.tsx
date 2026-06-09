@@ -10,6 +10,9 @@ import { LoadingShell } from './ui/LoadingShell.js';
 // Grace period before showing "server unreachable" — covers the initial
 // connecting phase so we don't flash the error on a normal page load.
 const SERVER_ERROR_DELAY_MS = 2000;
+// If the socket is open but no status message arrives within this time,
+// assume HA is unreachable rather than staying on loading forever.
+const STATUS_TIMEOUT_MS = 4000;
 
 export function App(): ReactElement {
   const link = useConnectionStore((s) => s.link);
@@ -28,6 +31,18 @@ export function App(): ReactElement {
   // before evaluating — avoids a false-positive before the server responds.
   const haOffline = !demo && link === 'connected' && serverStatus !== null && !haConnected;
 
+  // Safety valve: if we're connected but haven't received any status message
+  // within STATUS_TIMEOUT_MS, treat it as HA offline rather than loading forever.
+  const [statusTimedOut, setStatusTimedOut] = useState(false);
+  useEffect(() => {
+    if (link !== 'connected' || serverStatus !== null) {
+      setStatusTimedOut(false);
+      return;
+    }
+    const t = setTimeout(() => setStatusTimedOut(true), STATUS_TIMEOUT_MS);
+    return () => clearTimeout(t);
+  }, [link, serverStatus]);
+
   // Server itself unreachable — show error only after grace period.
   const serverDown = !demo && link !== 'connected';
   const [serverTimedOut, setServerTimedOut] = useState(false);
@@ -37,8 +52,8 @@ export function App(): ReactElement {
     return () => clearTimeout(t);
   }, [serverDown]);
 
-  const showError = haOffline || (serverDown && serverTimedOut);
-  const errorKind = haOffline ? 'ha' : 'server';
+  const showError = haOffline || (!demo && statusTimedOut) || (serverDown && serverTimedOut);
+  const errorKind = (haOffline || (!demo && statusTimedOut)) ? 'ha' : 'server';
   const isLoading = !demo && !showError && !haConnected;
 
   return (

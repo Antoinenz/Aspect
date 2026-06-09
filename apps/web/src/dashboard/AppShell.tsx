@@ -29,7 +29,14 @@ export function AppShell(): ReactElement {
   const registry = useConnectionStore((s) => s.registry);
   const demo = useDemoStore((s) => s.demo);
 
+  // Track previous demo value so we only reset the store when transitioning
+  // FROM demo mode. Running the reset on every initial mount (demo=false) would
+  // immediately undo the haConnected=true that caused AppShell to mount.
+  const prevDemoRef = useRef(demo);
   useEffect(() => {
+    const wasDemo = prevDemoRef.current;
+    prevDemoRef.current = demo;
+
     if (demo) {
       useConnectionStore.setState({
         link: 'connected',
@@ -41,9 +48,8 @@ export function AppShell(): ReactElement {
         registry: DEMO_REGISTRY,
         favorites: DEMO_FAVORITES,
       });
-    } else {
-      // Clear demo data; App.tsx reconnects the socket which will repopulate.
-      // serverStatus must be reset too so haOffline check in App.tsx works correctly.
+    } else if (wasDemo) {
+      // Transitioning from demo → real: clear demo data so App.tsx reconnects.
       useConnectionStore.setState({
         serverStatus: null,
         haConnected: false,

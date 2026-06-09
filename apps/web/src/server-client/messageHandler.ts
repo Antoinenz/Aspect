@@ -13,7 +13,10 @@ export function handleRawMessage(raw: string): void {
   } catch {
     return;
   }
-  if (!isServerToClientMessage(parsed)) return;
+  if (!isServerToClientMessage(parsed)) {
+    console.warn('[Aspect] Unrecognized server message dropped:', parsed);
+    return;
+  }
 
   const store = useConnectionStore.getState();
   switch (parsed.type) {
