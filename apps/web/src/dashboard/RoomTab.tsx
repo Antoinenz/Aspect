@@ -115,7 +115,7 @@ export function RoomTab({ room, onBack, onSelect }: RoomTabProps): ReactElement 
 
   return (
     <div>
-      <header className="mb-6">
+      <header className="tab-header">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">{room.name}</h1>
@@ -151,7 +151,7 @@ export function RoomTab({ room, onBack, onSelect }: RoomTabProps): ReactElement 
           </div>
         </div>
       </header>
-      <div className="flex flex-col gap-7">
+      <div className="mt-6 flex flex-col gap-7">
         {sections.map((s) => (
           <section key={s.label}>
             <h2 className="m-0 mb-3 text-[12px] font-bold uppercase tracking-[0.6px] text-[var(--color-muted)]">

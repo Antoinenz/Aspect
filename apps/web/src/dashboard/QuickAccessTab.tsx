@@ -143,6 +143,7 @@ export function QuickAccessTab({
   return (
     <div className="flex flex-col gap-7">
       {/* Header */}
+      <div className="tab-header">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Favourites</h1>
@@ -174,6 +175,7 @@ export function QuickAccessTab({
             Edit
           </button>
         )}
+      </div>
       </div>
 
       {/* Rooms — always shown, not editable */}

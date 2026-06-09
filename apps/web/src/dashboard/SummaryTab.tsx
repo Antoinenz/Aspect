@@ -101,17 +101,18 @@ export function SummaryTab({
 
   return (
     <div className="grid gap-6">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Home</h1>
-          {subtitle.length > 0 && (
-            <p className="m-0 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">
-              {subtitle.join(' · ')}
-            </p>
-          )}
-        </div>
-        <div className="flex shrink-0 items-start gap-2 pt-1">
+      {/* Sticky header + filter pills */}
+      <div className="tab-header">
+        <div className="flex items-start justify-between gap-3">
+          <div>
+            <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Home</h1>
+            {subtitle.length > 0 && (
+              <p className="m-0 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">
+                {subtitle.join(' · ')}
+              </p>
+            )}
+          </div>
+          <div className="flex shrink-0 items-start gap-2 pt-1">
           {s.alerts.length > 0 && (
             <div className="relative">
               <button
@@ -173,50 +174,51 @@ export function SummaryTab({
             <Icon path={mdiPower} size={16} />
             {anyLightsOn ? 'Turn off' : 'Turn on'}
           </button>
+          </div>
         </div>
-      </div>
 
-      {/* Filter pills — always shown when the home has entities in any category */}
-      {hasPills && (
-        <div className="-mx-5 flex gap-[9px] overflow-x-auto px-5 pb-1">
-          {hasLights && (
-            <StatusPill
-              path={mdiLightbulbOutline}
-              label="Lights"
-              value={lightValue}
-              active={activeFilter === 'lights'}
-              onClick={() => toggleFilter('lights')}
-            />
-          )}
-          {hasClimate && (
-            <StatusPill
-              path={mdiThermostat}
-              label="Climate"
-              value={climateValue}
-              active={activeFilter === 'climate'}
-              onClick={() => toggleFilter('climate')}
-            />
-          )}
-          {hasSecurity && (
-            <StatusPill
-              path={mdiShieldCheckOutline}
-              label="Security"
-              value={securityValue}
-              active={activeFilter === 'security'}
-              onClick={() => toggleFilter('security')}
-            />
-          )}
-          {hasPlaying && (
-            <StatusPill
-              path={mdiPlayCircleOutline}
-              label="Playing"
-              value={playingValue}
-              active={activeFilter === 'playing'}
-              onClick={() => toggleFilter('playing')}
-            />
-          )}
-        </div>
-      )}
+        {/* Filter pills — always shown when the home has entities in any category */}
+        {hasPills && (
+          <div className="-mx-5 mt-3 flex gap-[9px] overflow-x-auto px-5 pb-1">
+            {hasLights && (
+              <StatusPill
+                path={mdiLightbulbOutline}
+                label="Lights"
+                value={lightValue}
+                active={activeFilter === 'lights'}
+                onClick={() => toggleFilter('lights')}
+              />
+            )}
+            {hasClimate && (
+              <StatusPill
+                path={mdiThermostat}
+                label="Climate"
+                value={climateValue}
+                active={activeFilter === 'climate'}
+                onClick={() => toggleFilter('climate')}
+              />
+            )}
+            {hasSecurity && (
+              <StatusPill
+                path={mdiShieldCheckOutline}
+                label="Security"
+                value={securityValue}
+                active={activeFilter === 'security'}
+                onClick={() => toggleFilter('security')}
+              />
+            )}
+            {hasPlaying && (
+              <StatusPill
+                path={mdiPlayCircleOutline}
+                label="Playing"
+                value={playingValue}
+                active={activeFilter === 'playing'}
+                onClick={() => toggleFilter('playing')}
+              />
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Animated zone — filter panel XOR home summary; initial=false so CSS section-enter handles first load */}
       <AnimatePresence mode="wait" initial={false} custom={filterDir}>

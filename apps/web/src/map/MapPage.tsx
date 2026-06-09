@@ -42,13 +42,16 @@ export function MapPage(): ReactElement {
 
   return (
     <div>
-      <h1 className="m-0 mb-1 text-[26px] font-extrabold tracking-[-0.5px]">Map</h1>
-      <p className="m-0 mb-5 text-[13px] font-medium text-[var(--color-muted)]">
-        {places.length > 0
-          ? `${places.length} ${places.length === 1 ? 'person' : 'people'} located`
-          : 'Where everyone is'}
-      </p>
+      <div className="tab-header">
+        <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Map</h1>
+        <p className="m-0 mt-1 text-[13px] font-medium text-[var(--color-muted)]">
+          {places.length > 0
+            ? `${places.length} ${places.length === 1 ? 'person' : 'people'} located`
+            : 'Where everyone is'}
+        </p>
+      </div>
 
+      <div className="mt-5">
       {places.length === 0 ? (
         <div
           className="flex min-h-[40vh] items-center justify-center border border-[var(--color-border)] bg-[var(--color-surface)] p-8 text-center text-[15px] text-[var(--color-muted)] backdrop-blur-[var(--blur-frost)]"
@@ -80,6 +83,7 @@ export function MapPage(): ReactElement {
           </MapContainer>
         </div>
       )}
+      </div>
     </div>
   );
 }

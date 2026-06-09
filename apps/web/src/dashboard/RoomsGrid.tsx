@@ -10,17 +10,19 @@ export function RoomsOverview({ rooms, onOpen }: { rooms: Room[]; onOpen: (areaI
   const stats = roomsOverview(rooms);
   return (
     <div>
-      <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Rooms</h1>
-      <p className="mb-5 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">
-        {stats.length} {stats.length === 1 ? 'room' : 'rooms'}
-        {stats.some((s) => s.onCount > 0) && (
-          <> · {stats.filter((s) => s.onCount > 0).length} active</>
-        )}
-      </p>
+      <div className="tab-header">
+        <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Rooms</h1>
+        <p className="m-0 mt-0.5 text-[12.5px] font-medium text-[var(--color-muted)]">
+          {stats.length} {stats.length === 1 ? 'room' : 'rooms'}
+          {stats.some((s) => s.onCount > 0) && (
+            <> · {stats.filter((s) => s.onCount > 0).length} active</>
+          )}
+        </p>
+      </div>
       {stats.length === 0 ? (
-        <p className="text-[15px] text-[var(--color-muted)]">No rooms to show yet.</p>
+        <p className="mt-5 text-[15px] text-[var(--color-muted)]">No rooms to show yet.</p>
       ) : (
-        <div className="grid gap-[14px] [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
+        <div className="mt-5 grid gap-[14px] [grid-template-columns:repeat(auto-fill,minmax(180px,1fr))]">
           {stats.map((s, i) => {
             const active = s.onCount > 0;
             return (

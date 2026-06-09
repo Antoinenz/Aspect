@@ -101,7 +101,7 @@ export function AppShell(): ReactElement {
   return (
     <div className="flex h-dvh overflow-hidden">
       <Nav section={section} onNavigate={navigate} />
-      <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] px-5 pb-24 pt-[calc(24px+env(safe-area-inset-top))] md:px-8 md:pb-10">
+      <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] px-5 pb-24 md:px-8 md:pb-10">
         <div className="mx-auto max-w-[1100px]">
           <div key={section + (roomId ?? '')} className={enterClass}>
             {section === 'home' && <SummaryTab rooms={rooms} onSelect={openEntity} />}

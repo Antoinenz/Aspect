@@ -151,6 +151,43 @@
 :root[data-motion='reduced'] .tile-wiggle { animation: none; }
 :root[data-motion='reduced'] * { transition-duration: 0.01ms !important; }
 
+/* ── Sticky tab header ───────────────────────────────────────────────────────
+ * Bleeds to the scroll area edges (-mx-5 / -mx-8) so the frosted glass covers
+ * the full width; the ::after gradient tail lets content fade in smoothly as it
+ * scrolls up behind the header.
+ */
+.tab-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  margin-inline: -20px;
+  padding-inline: 20px;
+  padding-top: calc(16px + env(safe-area-inset-top));
+  padding-bottom: 16px;
+  /* Fallback for older browsers (dark tone); color-mix makes it theme-aware. */
+  background: rgba(14, 15, 19, 0.88);
+  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+}
+.tab-header::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 20px;
+  transform: translateY(100%);
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--color-bg) 40%, transparent), transparent);
+  pointer-events: none;
+}
+@media (min-width: 768px) {
+  .tab-header {
+    margin-inline: -32px;
+    padding-inline: 32px;
+  }
+}
+
 /*
  * Custom scrollbar — thin, themed, no layout shift.
  * scrollbar-gutter: stable on the scroll container reserves the gutter width
