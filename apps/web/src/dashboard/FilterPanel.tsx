@@ -1,4 +1,5 @@
 import { type ReactElement, useMemo } from 'react';
+import { motion } from 'motion/react';
 import { mdiPower, mdiLock, mdiPause, mdiArrowUp, mdiArrowDown } from '@mdi/js';
 import { Tile } from '../ui/Tile.js';
 import { Icon } from '../ui/Icon.js';
@@ -111,6 +112,16 @@ function buildQuickActions(
   return actions;
 }
 
+const containerVariants = {
+  hidden: {},
+  show: { transition: { staggerChildren: 0.08, delayChildren: 0.05 } },
+};
+
+const itemVariants = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { duration: 0.22, ease: 'easeOut' } },
+};
+
 export function FilterPanel({
   kind,
   rooms,
@@ -131,31 +142,35 @@ export function FilterPanel({
   const chipSq = { borderRadius: '13px', cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties;
 
   return (
-    <div className="flex flex-col gap-6">
+    <motion.div className="flex flex-col gap-6" variants={containerVariants} initial="hidden" animate="show">
       {/* Quick actions */}
       {quickActions.length > 0 && (
-        <div className="flex flex-wrap gap-2">
+        <motion.div variants={itemVariants} className="flex flex-wrap gap-2">
           {quickActions.map((qa) => (
-            <button
+            <motion.button
               key={qa.id}
               type="button"
               onClick={qa.onClick}
-              className="flex items-center gap-2 border border-white/15 bg-white/[0.07] px-4 py-2 text-[13px] font-semibold hover:bg-white/[0.12] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40 transition-colors duration-150"
+              whileTap={{ scale: 0.96 }}
+              transition={{ type: 'spring', stiffness: 400, damping: 20 }}
+              className="flex items-center gap-2 border border-white/15 bg-white/[0.07] px-4 py-2 text-[13px] font-semibold hover:bg-white/[0.13] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
               style={chipSq}
             >
               <Icon path={qa.icon} size={15} color="rgba(255,255,255,0.75)" />
               {qa.label}
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
       )}
 
       {/* Entities grouped by room */}
       {filteredRooms.length === 0 ? (
-        <p className="m-0 text-[14px] text-[var(--color-muted)]">No devices in this category.</p>
+        <motion.p variants={itemVariants} className="m-0 text-[14px] text-[var(--color-muted)]">
+          No devices in this category.
+        </motion.p>
       ) : (
         filteredRooms.map(({ areaId, name, entities }) => (
-          <section key={areaId}>
+          <motion.section key={areaId} variants={itemVariants}>
             <h2 className="m-0 mb-3 text-[12px] font-bold uppercase tracking-[0.6px] text-[var(--color-muted)]">
               {name}
             </h2>
@@ -175,9 +190,9 @@ export function FilterPanel({
                 />
               ))}
             </div>
-          </section>
+          </motion.section>
         ))
       )}
-    </div>
+    </motion.div>
   );
 }

@@ -1,3 +1,4 @@
+import { motion } from 'motion/react';
 import type { ReactElement } from 'react';
 import { roomsOverview } from './roomStats.js';
 import { roomIcon } from './roomIcon.js';
@@ -23,12 +24,14 @@ export function RoomsOverview({ rooms, onOpen }: { rooms: Room[]; onOpen: (areaI
           {stats.map((s, i) => {
             const active = s.onCount > 0;
             return (
-              <button
+              <motion.button
                 key={s.areaId}
                 type="button"
                 onClick={() => onOpen(s.areaId)}
+                whileTap={{ scale: 0.97 }}
+                transition={{ type: 'spring', stiffness: 380, damping: 25 }}
                 className={[
-                  'card-enter relative flex min-h-[120px] flex-col rounded-[20px] border p-4 text-left backdrop-blur-[22px] transition-[transform,background-color] duration-150 active:scale-[0.97] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
+                  'card-enter relative flex min-h-[120px] flex-col rounded-[20px] border p-4 text-left backdrop-blur-[22px] transition-colors duration-150 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40',
                   active
                     ? 'border-white/50 bg-[#f6f7f9]/95 text-[#15161a] hover:bg-[#edeef1]/95'
                     : 'border-white/10 bg-[rgba(36,40,50,0.5)] backdrop-saturate-[1.3] hover:bg-[rgba(48,54,66,0.65)]',
@@ -52,7 +55,7 @@ export function RoomsOverview({ rooms, onOpen }: { rooms: Room[]; onOpen: (areaI
                   {s.openCount > 0 && ` · ${s.openCount} open`}
                   {` · ${s.deviceCount} ${s.deviceCount === 1 ? 'device' : 'devices'}`}
                 </span>
-              </button>
+              </motion.button>
             );
           })}
         </div>

@@ -37,7 +37,7 @@ export function Tile({
       ].join(' ')}
       style={sq}
       whileTap={{ scale: 0.97 }}
-      transition={{ type: 'spring', stiffness: 500, damping: 30 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 25 }}
     >
       {/* Full-tile press zone — opens entity detail */}
       <button

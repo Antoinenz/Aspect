@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactElement } from 'react';
+import { AnimatePresence, motion } from 'motion/react';
 import {
   mdiThermostat, mdiShieldCheckOutline, mdiPlayCircleOutline, mdiAccount,
   mdiAlertCircleOutline, mdiWeatherPartlyCloudy, mdiBellOutline, mdiBell, mdiPower,
@@ -118,9 +119,16 @@ export function SummaryTab({
                 Alerts
               </button>
               {showAlerts && (
-                <>
-                  <div className="fixed inset-0 z-40" onClick={() => setShowAlerts(false)} />
-                  <div
+                <div className="fixed inset-0 z-40" onClick={() => setShowAlerts(false)} />
+              )}
+              <AnimatePresence>
+                {showAlerts && (
+                  <motion.div
+                    key="alert-panel"
+                    initial={{ opacity: 0, scale: 0.94, y: -6 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.94, y: -6 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 32 }}
                     className="absolute right-0 top-[calc(100%+8px)] z-50 w-[272px] overflow-hidden rounded-[18px] border border-[#5a2e2e] bg-[rgba(22,14,14,0.96)] shadow-2xl backdrop-blur-[24px]"
                     style={{ cornerShape: 'superellipse(4)' } as React.CSSProperties}
                   >
@@ -141,9 +149,9 @@ export function SummaryTab({
                         </button>
                       ))}
                     </div>
-                  </div>
-                </>
-              )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           )}
           <button
@@ -200,54 +208,69 @@ export function SummaryTab({
         </div>
       )}
 
-      {/* Filter panel — replaces normal summary sections when a pill is active */}
-      {activeFilter && (
-        <div key={activeFilter} className="filter-enter">
-          <FilterPanel kind={activeFilter} rooms={rooms} onSelect={onSelect} />
-        </div>
-      )}
-
-      {/* Normal summary sections — presence and climate overview */}
-      {!activeFilter && s.people.length > 0 && (
-        <section className="grid gap-2.5">
-          <h2 className="m-0 text-[15px] font-bold text-[var(--color-muted)]">Who&apos;s home</h2>
-          <div className="flex flex-wrap gap-2.5">
-            {s.people.map((p) => (
-              <div key={p.entityId} className="flex items-center gap-2 rounded-[14px] border border-white/10 bg-[rgba(36,40,50,0.5)] px-3 py-2 backdrop-blur-[18px]">
-                {p.picture
-                  ? <img src={p.picture} alt="" className="h-6 w-6 rounded-full object-cover" />
-                  : <Icon path={mdiAccount} size={18} color={p.home ? '#8ee6b0' : 'var(--color-muted)'} />}
-                <span className="text-[13px] font-semibold">{p.name}</span>
-                <span className="text-[12px] text-[var(--color-muted)]">{p.home ? 'Home' : 'Away'}</span>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {!activeFilter && (s.weather || s.thermostats.length > 0) && (
-        <section className="grid gap-2.5">
-          <h2 className="m-0 text-[15px] font-bold text-[var(--color-muted)]">Climate</h2>
-          <div className="grid gap-[13px] [grid-template-columns:repeat(auto-fill,minmax(150px,1fr))]">
-            {s.weather && (
-              <div className="flex min-h-[120px] flex-col rounded-[20px] border border-white/10 bg-[rgba(36,40,50,0.5)] p-4 backdrop-blur-[22px] backdrop-saturate-[1.3]"
-                style={{ cornerShape: 'superellipse(4)' } as React.CSSProperties}>
-                <Icon path={mdiWeatherPartlyCloudy} size={26} color="#86c2ff" />
-                <span className="mt-auto text-[14px] font-bold capitalize">{s.weather.state.replace(/_/g, ' ')}</span>
-                {s.weather.temp && <span className="text-[12px] text-[var(--color-muted)]">{s.weather.temp}</span>}
-              </div>
+      {/* Animated zone — filter panel XOR home summary; initial=false so CSS section-enter handles first load */}
+      <AnimatePresence mode="wait" initial={false}>
+        {activeFilter ? (
+          <motion.div
+            key={activeFilter}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+          >
+            <FilterPanel kind={activeFilter} rooms={rooms} onSelect={onSelect} />
+          </motion.div>
+        ) : (s.people.length > 0 || !!s.weather || s.thermostats.length > 0) ? (
+          <motion.div
+            key="home"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 12 }}
+            transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+            className="grid gap-6"
+          >
+            {s.people.length > 0 && (
+              <section className="grid gap-2.5">
+                <h2 className="m-0 text-[15px] font-bold text-[var(--color-muted)]">Who&apos;s home</h2>
+                <div className="flex flex-wrap gap-2.5">
+                  {s.people.map((p) => (
+                    <div key={p.entityId} className="flex items-center gap-2 rounded-[14px] border border-white/10 bg-[rgba(36,40,50,0.5)] px-3 py-2 backdrop-blur-[18px]">
+                      {p.picture
+                        ? <img src={p.picture} alt="" className="h-6 w-6 rounded-full object-cover" />
+                        : <Icon path={mdiAccount} size={18} color={p.home ? '#8ee6b0' : 'var(--color-muted)'} />}
+                      <span className="text-[13px] font-semibold">{p.name}</span>
+                      <span className="text-[12px] text-[var(--color-muted)]">{p.home ? 'Home' : 'Away'}</span>
+                    </div>
+                  ))}
+                </div>
+              </section>
             )}
-            {s.thermostats.map((id) => {
-              const entity = entities[id];
-              if (!entity) return null;
-              return (
-                <Tile key={id} path={iconFor(entity)} tint={tintFor('climate')} name={friendlyName(entity, null)}
-                  state={formatState(entity)} active={isActive(entity)} wide onPress={() => onSelect(id)} />
-              );
-            })}
-          </div>
-        </section>
-      )}
+            {(s.weather || s.thermostats.length > 0) && (
+              <section className="grid gap-2.5">
+                <h2 className="m-0 text-[15px] font-bold text-[var(--color-muted)]">Climate</h2>
+                <div className="grid gap-[13px] [grid-template-columns:repeat(auto-fill,minmax(150px,1fr))]">
+                  {s.weather && (
+                    <div className="flex min-h-[120px] flex-col rounded-[20px] border border-white/10 bg-[rgba(36,40,50,0.5)] p-4 backdrop-blur-[22px] backdrop-saturate-[1.3]"
+                      style={{ cornerShape: 'superellipse(4)' } as React.CSSProperties}>
+                      <Icon path={mdiWeatherPartlyCloudy} size={26} color="#86c2ff" />
+                      <span className="mt-auto text-[14px] font-bold capitalize">{s.weather.state.replace(/_/g, ' ')}</span>
+                      {s.weather.temp && <span className="text-[12px] text-[var(--color-muted)]">{s.weather.temp}</span>}
+                    </div>
+                  )}
+                  {s.thermostats.map((id) => {
+                    const entity = entities[id];
+                    if (!entity) return null;
+                    return (
+                      <Tile key={id} path={iconFor(entity)} tint={tintFor('climate')} name={friendlyName(entity, null)}
+                        state={formatState(entity)} active={isActive(entity)} wide onPress={() => onSelect(id)} />
+                    );
+                  })}
+                </div>
+              </section>
+            )}
+          </motion.div>
+        ) : null}
+      </AnimatePresence>
     </div>
   );
 }
