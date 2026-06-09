@@ -25,6 +25,13 @@ const ALERT_ICON = {
 
 const chipClass = 'flex items-center gap-1.5 rounded-[13px] border border-[var(--color-border)] bg-[var(--color-surface)] px-3 py-1.5 text-[13px] font-semibold text-[var(--color-muted)] backdrop-blur-[var(--blur-frost)] hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40';
 
+// 'up' = opening filter (both views pull up); 'down' = closing filter (both views push down).
+const filterTransition = {
+  enter: (dir: 'up' | 'down') => ({ opacity: 0, y: dir === 'up' ? 12 : -12 }),
+  center: { opacity: 1, y: 0, transition: { duration: 0.22, ease: [0.25, 0.46, 0.45, 0.94] } },
+  exit:   (dir: 'up' | 'down') => ({ opacity: 0, y: dir === 'up' ? -12 : 12, transition: { duration: 0.16, ease: 'easeIn' } }),
+};
+
 export function SummaryTab({
   rooms,
   onSelect,
@@ -39,9 +46,12 @@ export function SummaryTab({
   const s = useMemo(() => buildSummary(entities, registry, devices), [entities, registry, devices]);
   const [showAlerts, setShowAlerts] = useState(false);
   const [activeFilter, setActiveFilter] = useState<FilterKind | null>(null);
+  const [filterDir, setFilterDir] = useState<'up' | 'down'>('up');
 
-  const toggleFilter = (kind: FilterKind): void =>
+  const toggleFilter = (kind: FilterKind): void => {
+    setFilterDir(activeFilter === kind ? 'down' : 'up');
     setActiveFilter((f) => (f === kind ? null : kind));
+  };
 
   function handleAlertClick(entityId: string): void {
     setShowAlerts(false);
@@ -209,24 +219,26 @@ export function SummaryTab({
       )}
 
       {/* Animated zone — filter panel XOR home summary; initial=false so CSS section-enter handles first load */}
-      <AnimatePresence mode="wait" initial={false}>
+      <AnimatePresence mode="wait" initial={false} custom={filterDir}>
         {activeFilter ? (
           <motion.div
             key={activeFilter}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 12 }}
-            transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+            custom={filterDir}
+            variants={filterTransition}
+            initial="enter"
+            animate="center"
+            exit="exit"
           >
             <FilterPanel kind={activeFilter} rooms={rooms} onSelect={onSelect} />
           </motion.div>
         ) : (s.people.length > 0 || !!s.weather || s.thermostats.length > 0) ? (
           <motion.div
             key="home"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 12 }}
-            transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+            custom={filterDir}
+            variants={filterTransition}
+            initial="enter"
+            animate="center"
+            exit="exit"
             className="grid gap-6"
           >
             {s.people.length > 0 && (
