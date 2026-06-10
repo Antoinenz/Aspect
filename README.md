@@ -13,7 +13,7 @@ Apple Home–inspired polish, auto-organized by room, friendly enough for the wh
 ---
 
 > [!NOTE]
-> Aspect is in **active development** (pre-v1). The core — live control of your home through a beautiful, room-based UI — works today. Summary/Quick-Access tabs, onboarding, and one-click packaging are on the way (see [Roadmap](#roadmap)).
+> Aspect is in **active development** (pre-v1). The core — live control of your home through a beautiful, room-based UI, plus Home, Favourites, and Map tabs — works today. Friendly onboarding and one-click packaging are on the way (see [Roadmap](#roadmap)).
 
 ## What is Aspect?
 
@@ -24,11 +24,13 @@ A small server sits between your browser and Home Assistant, so **the HA token n
 ## Features
 
 - 🏠 **Auto-generated room dashboard** — areas become tabs; devices become tiles, instantly.
+- 🎯 **Smart device classification** — every entity is automatically sorted into a device kind (lights, climate, security, media, locks, sensors, ...), powering the Lights / Climate / Security / Playing filter pills with zero configuration.
 - 🎛️ **Real controls** — lights (brightness, color temperature), switches, scenes, covers (position), climate (setpoint & mode), fans, locks, media players (play/volume/source), scripts, automations, buttons, and helpers (select/number).
-- ✨ **Polished, native feel** — Apple Home–inspired design language: frosted translucent squircle tiles, MDI icons, Plus Jakarta Sans, adaptive light/dark, reduced-motion aware.
+- ✨ **Polished, native feel** — Apple Home–inspired design language: frosted translucent squircle tiles, MDI icons, Plus Jakarta Sans, adaptive light/dark, reduced-motion aware (including all motion-based animations).
 - 🔋 **Quiet by default** — diagnostic/config noise is filtered out; battery and secondary readings are attached to their device, not scattered as clutter.
 - ⚡ **Live & responsive** — real-time state over WebSocket with optimistic updates; resilient reconnection.
-- ⭐ **Favorites** — pin devices/scenes; synced across every family device (server-stored).
+- 🧭 **Home, Favourites & Map tabs** — a Home tab with an at-a-glance summary (presence, climate, alerts, recent activity), a Favourites tab for pinned devices/scenes (synced across every family device, server-stored), and a Map tab showing where family members are via device trackers.
+- 🎨 **Personalize** — light/dark/auto theme and a built-in demo mode to try the full UI without a Home Assistant connection.
 - 🔒 **Secure by design** — a single server-side connection to Home Assistant; clients never hold your HA token.
 
 ## Architecture
@@ -42,7 +44,7 @@ Family devices (PWA clients)  ──WS/HTTP──►  Aspect server  ──WS─
 - **`apps/web`** — React + Vite PWA: connects only to the Aspect server. Renders the dashboard and controls.
 - **`packages/shared`** — TypeScript types & WebSocket message contracts shared by both.
 
-**Stack:** TypeScript · React 19 · Vite 6 · Tailwind CSS v4 · Radix UI · Motion · Material Design Icons · Zustand · Fastify 5 · better-sqlite3 · Node 22 · pnpm workspaces · Vitest.
+**Stack:** TypeScript · React 19 · Vite 6 · Tailwind CSS v4 · Radix UI · Motion · Leaflet · Material Design Icons · Zustand · Fastify 5 · better-sqlite3 · Node 22 · pnpm workspaces · Vitest.
 
 ## Getting started (development)
 
@@ -96,9 +98,10 @@ HA_URL=... HA_TOKEN=... pnpm --filter @aspect/server dump:ha
 - [x] Per-domain device controls + command channel
 - [x] Apple Home–inspired design system (Tailwind + Radix + MDI, squircles)
 - [x] Tabbed app shell with auto-generated room tabs, filtering & battery-on-device
-- [x] Favorites persistence (SQLite, synced)
-- [ ] **Summary** tab (presence, climate/weather, alerts, activity)
-- [ ] **Quick Access** tab (pin/unpin favorites UI)
+- [x] Smart device classification powering Lights/Climate/Security/Playing filters
+- [x] Favorites persistence (SQLite, synced) + **Favourites** tab
+- [x] **Home** tab (presence, climate/weather, alerts, activity)
+- [x] **Map** tab — live location of family members via device trackers
 - [ ] Friendly onboarding + "Log in with Home Assistant" (OAuth) and a service allow-list
 - [ ] One-click install: Home Assistant add-on + Docker image
 - [ ] Cameras, history charts, custom wallpaper, edit/reorder mode
