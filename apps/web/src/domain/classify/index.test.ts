@@ -64,4 +64,13 @@ describe('classifyDevice', () => {
     expect(kind).toBe('sensor_generic');
     expect(iconForKind(kind)).toBeTruthy();
   });
+
+  it('lets a cover device_class win over a conflicting name pattern from another module', () => {
+    // device_class 'garage' (security.ts) must win over the name "Blind"
+    // (airAndClimate.ts), since all DEVICE_CLASS_RULES run before any
+    // NAME_RULES regardless of module order.
+    const kind = classifyDevice(e('cover.weird', { device_class: 'garage', friendly_name: 'Blind' }));
+    expect(kind).toBe('garage_door');
+    expect(filterCategoryForKind(kind)).toBe('security');
+  });
 });
