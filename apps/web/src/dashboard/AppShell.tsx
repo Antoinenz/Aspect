@@ -1,4 +1,4 @@
-import { useMemo, useState, useCallback, useRef, useEffect, type ReactElement } from 'react';
+import { useMemo, useState, useCallback, useRef, useEffect, useLayoutEffect, type ReactElement } from 'react';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { useDemoStore } from '../demo/demoStore.js';
 import { DEMO_ENTITIES, DEMO_AREAS, DEMO_DEVICES, DEMO_REGISTRY, DEMO_FAVORITES } from '../demo/demoData.js';
@@ -104,10 +104,22 @@ export function AppShell(): ReactElement {
 
   const enterClass = navDir === 'backward' ? 'section-enter-backward' : 'section-enter-forward';
 
+  // Expose <main>'s rendered width as a CSS var so .tab-header can bleed to its
+  // edges even when content is centered in a narrower max-w column.
+  useLayoutEffect(() => {
+    const el = mainRef.current;
+    if (!el) return;
+    const update = () => el.style.setProperty('--main-w', `${el.offsetWidth}px`);
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
-    <div className="flex h-dvh overflow-hidden">
+    <div className="flex h-dvh [overflow:clip]">
       <Nav section={section} onNavigate={navigate} />
-      <main ref={mainRef} className="flex-1 overflow-y-auto overflow-x-hidden [scrollbar-gutter:stable] px-5 pb-24 md:px-8 md:pb-10">
+      <main ref={mainRef} className="flex-1 overflow-y-auto [overflow-x:clip] [scrollbar-gutter:stable] px-5 pb-24 md:px-8 md:pb-10">
         <div className="mx-auto max-w-[1100px]">
           <div key={section + (roomId ?? '')} className={enterClass}>
             {section === 'home' && <SummaryTab rooms={rooms} onSelect={openEntity} />}

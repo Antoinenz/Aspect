@@ -1,5 +1,5 @@
 import { useEffect, useState, type ReactElement } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
+import { AnimatePresence } from 'motion/react';
 import { connectToServer } from './server-client/socket.js';
 import { useConnectionStore } from './store/connectionStore.js';
 import { useDemoStore } from './demo/demoStore.js';
@@ -63,14 +63,9 @@ export function App(): ReactElement {
       ) : isLoading ? (
         <LoadingShell key="loading" />
       ) : (
-        <motion.div
-          key="shell"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.22 }}
-        >
+        <div key="shell" className="shell-fade-in">
           <AppShell />
-        </motion.div>
+        </div>
       )}
     </AnimatePresence>
   );

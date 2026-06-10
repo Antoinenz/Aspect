@@ -144,6 +144,16 @@
 }
 .filter-enter { animation: aspect-filter-in 0.24s ease-out backwards; }
 
+/* Shell entrance fade — CSS keyframe (not Framer) so no will-change/opacity
+ * layer lingers on an ancestor of .tab-header, which would isolate its
+ * backdrop-filter and kill the blur. */
+@keyframes aspect-shell-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.shell-fade-in { animation: aspect-shell-in 0.22s ease-out backwards; }
+
+:root[data-motion='reduced'] .shell-fade-in,
 :root[data-motion='reduced'] .section-enter-forward,
 :root[data-motion='reduced'] .section-enter-backward,
 :root[data-motion='reduced'] .filter-enter,
@@ -152,40 +162,37 @@
 :root[data-motion='reduced'] * { transition-duration: 0.01ms !important; }
 
 /* ── Sticky tab header ───────────────────────────────────────────────────────
- * Bleeds to the scroll area edges (-mx-5 / -mx-8) so the frosted glass covers
- * the full width; the ::after gradient tail lets content fade in smoothly as it
- * scrolls up behind the header.
+ * Bleeds to <main>'s full rendered width (--main-w, set in AppShell via
+ * ResizeObserver) so the frosted glass covers edge-to-edge even when the
+ * content column is narrower than <main> on wide screens. Its direct content
+ * wrapper re-applies max-w-[1100px] mx-auto to stay aligned with the rest of
+ * the page. Background/tint TBD — left transparent for now while the look is
+ * fine-tuned; backdrop-filter alone provides the blur on scroll.
  */
 .tab-header {
   position: sticky;
   top: 0;
   z-index: 10;
-  margin-inline: -20px;
+  width: var(--main-w, 100%);
+  margin-inline: calc((100% - var(--main-w, 100%)) / 2);
   padding-inline: 20px;
   padding-top: calc(16px + env(safe-area-inset-top));
   padding-bottom: 16px;
-  /* Fallback for older browsers (dark tone); color-mix makes it theme-aware. */
-  background: rgba(14, 15, 19, 0.88);
-  background: color-mix(in srgb, var(--color-bg) 88%, transparent);
+  background: transparent;
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
 }
-.tab-header::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 20px;
-  transform: translateY(100%);
-  background: linear-gradient(to bottom, color-mix(in srgb, var(--color-bg) 40%, transparent), transparent);
-  pointer-events: none;
-}
 @media (min-width: 768px) {
   .tab-header {
-    margin-inline: -32px;
     padding-inline: 32px;
   }
+}
+
+/* Re-center each header's content within the same 1100px column as the rest
+ * of the page, since .tab-header itself now spans <main>'s full width. */
+.tab-header > * {
+  max-width: 1100px;
+  margin-inline: auto;
 }
 
 /*
