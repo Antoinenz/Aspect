@@ -23,12 +23,20 @@ export const DEVICE_CLASS_RULES: Rule[] = [
 ];
 
 export const NAME_RULES: Rule[] = [
+  // Reuses airAndClimate's extractor_fan pattern: a switch named e.g. "extractor
+  // fan" almost certainly controls a fan. Only extractor_fan is pulled in —
+  // other FAN_NAME_PATTERNS kinds (ceiling/pedestal fan, air purifier) describe
+  // standalone appliances, not switch-controlled fixtures.
   ...FAN_NAME_PATTERNS
     .filter(([, kind]) => kind === 'extractor_fan')
     .map(([re, kind]) => ({
       kind,
       test: (ctx: ClassifyContext) => ctx.domain === 'switch' && re.test(ctx.name),
     })),
+  // Reuses all of lighting's name patterns: a switch named e.g. "bedside lamp"
+  // controls that fixture. This assumes every current and future
+  // LIGHT_NAME_PATTERNS entry names a physical light fixture (safe to match on
+  // a switch); a non-fixture lighting pattern added later would need review here.
   ...LIGHT_NAME_PATTERNS.map(([re, kind]) => ({
     kind,
     test: (ctx: ClassifyContext) => ctx.domain === 'switch' && re.test(ctx.name),
