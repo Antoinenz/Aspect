@@ -51,7 +51,7 @@ function SortableTile({
         <div className="pointer-events-none">
           <Tile
             path={iconFor(entity)}
-            tint={tintFor(domainOf(entity.entityId))}
+            tint={tintFor(entity)}
             name={name}
             state={formatState(entity)}
             active={isActive(entity)}
@@ -224,7 +224,7 @@ export function QuickAccessTab({
                 <Tile
                   key={entity.entityId}
                   path={iconFor(entity)}
-                  tint={tintFor(domainOf(entity.entityId))}
+                  tint={tintFor(entity)}
                   name={friendlyName(entity, null)}
                   state={formatState(entity)}
                   active={isActive(entity)}

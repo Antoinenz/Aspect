@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { mdiPower, mdiLock, mdiPause, mdiArrowUp, mdiArrowDown } from '@mdi/js';
 import { Tile } from '../ui/Tile.js';
 import { Icon } from '../ui/Icon.js';
-import { formatState, isActive, domainOf } from '../domain/entities.js';
+import { formatState, isActive } from '../domain/entities.js';
 import { iconFor, tintFor } from '../domain/icons.js';
 import { tileAction } from '../domain/tileAction.js';
 import { callService } from '../server-client/commands.js';
@@ -179,7 +179,7 @@ export function FilterPanel({
                 <Tile
                   key={re.entity.entityId}
                   path={iconFor(re.entity)}
-                  tint={tintFor(domainOf(re.entity.entityId))}
+                  tint={tintFor(re.entity)}
                   name={re.name}
                   state={formatState(re.entity)}
                   active={isActive(re.entity)}

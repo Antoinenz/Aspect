@@ -275,7 +275,7 @@ export function SummaryTab({
                     const entity = entities[id];
                     if (!entity) return null;
                     return (
-                      <Tile key={id} path={iconFor(entity)} tint={tintFor('climate')} name={friendlyName(entity, null)}
+                      <Tile key={id} path={iconFor(entity)} tint={tintFor(entity)} name={friendlyName(entity, null)}
                         state={formatState(entity)} active={isActive(entity)} wide onPress={() => onSelect(id)} />
                     );
                   })}
