@@ -1,31 +1,11 @@
 import type { Room, RoomEntity } from './rooms.js';
-import {
-  SHADE_COVER_CLASSES,
-  SECURITY_COVER_CLASSES,
-  SECURITY_BINARY_SENSOR_CLASSES,
-  CLIMATE_SENSOR_CLASSES,
-} from '../domain/deviceClass.js';
+import { classifyDevice, filterCategoryForKind } from '../domain/classify/index.js';
+import type { FilterKind } from '../domain/classify/index.js';
 
-export type FilterKind = 'lights' | 'climate' | 'security' | 'playing';
+export type { FilterKind };
 
 function matchesFilter(re: RoomEntity, kind: FilterKind): boolean {
-  const dc = typeof re.entity.attributes.device_class === 'string'
-    ? (re.entity.attributes.device_class as string)
-    : null;
-  switch (kind) {
-    case 'lights':
-      return re.domain === 'light' || re.domain === 'fan';
-    case 'climate':
-      return re.domain === 'climate'
-        || (re.domain === 'cover' && dc !== null && SHADE_COVER_CLASSES.has(dc))
-        || (re.domain === 'sensor' && dc !== null && CLIMATE_SENSOR_CLASSES.has(dc));
-    case 'security':
-      return re.domain === 'lock'
-        || (re.domain === 'binary_sensor' && dc !== null && SECURITY_BINARY_SENSOR_CLASSES.has(dc))
-        || (re.domain === 'cover' && dc !== null && SECURITY_COVER_CLASSES.has(dc));
-    case 'playing':
-      return re.domain === 'media_player';
-  }
+  return filterCategoryForKind(classifyDevice(re.entity)) === kind;
 }
 
 export interface FilteredRoom {
