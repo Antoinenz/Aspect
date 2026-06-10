@@ -1,6 +1,8 @@
 import { mdiTelevision, mdiSpeaker, mdiSoundbar, mdiAmplifier } from '@mdi/js';
 import type { ClassifyContext, MediaKind, Rule } from './types.js';
 
+// `tv` must stay last: `/\btv\b/` would otherwise match the "tv" in
+// "tv soundbar" before the soundbar pattern gets a chance.
 const MEDIA_NAME_PATTERNS: ReadonlyArray<readonly [RegExp, MediaKind]> = [
   [/sound\s?bar/i, 'soundbar'],
   [/receiver|amplifier|\bamp\b/i, 'receiver'],
