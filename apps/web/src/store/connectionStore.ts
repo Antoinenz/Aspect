@@ -31,7 +31,16 @@ interface ConnectionState {
   applyEntityUpdate: (entities: EntityState[], removed: string[]) => void;
   applyOptimistic: (
     entityId: string,
-    patch: { state?: string; attributes?: Record<string, unknown> },
+    patch: {
+      state?: string;
+      attributes?: Record<string, unknown>;
+      /**
+       * When true, `attributes` fully replaces the current attributes rather
+       * than being merged on top. Use when the patch removes keys (e.g. a light
+       * turning off loses brightness/color_temp from the live state).
+       */
+      replaceAttributes?: boolean;
+    },
   ) => void;
 }
 
@@ -67,13 +76,16 @@ export const useConnectionStore = create<ConnectionState>((set) => ({
     set((s) => {
       const current = s.entities[entityId];
       if (!current) return {};
+      const nextAttributes = patch.replaceAttributes
+        ? (patch.attributes ?? current.attributes)
+        : { ...current.attributes, ...(patch.attributes ?? {}) };
       return {
         entities: {
           ...s.entities,
           [entityId]: {
             ...current,
             ...(patch.state !== undefined ? { state: patch.state } : {}),
-            attributes: { ...current.attributes, ...(patch.attributes ?? {}) },
+            attributes: nextAttributes,
           },
         },
       };
