@@ -1,7 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from './app.js';
 import type { AspectConfig } from './config.js';
-import { startHaConnection } from './ha/connection.js';
+import { startHaConnection, type HaConnectionHandle } from './ha/connection.js';
 import { FavoritesStore } from './db/favoritesStore.js';
 
 /**
@@ -26,7 +26,7 @@ export async function startServer(
   // onClose can cancel a connection that is still being established when the
   // server shuts down (avoids leaking the HA WebSocket and its reconnect timers).
   let haStop: (() => void) | null = null;
-  let haConnecting: Promise<unknown> | null = null;
+  let haConnecting: Promise<HaConnectionHandle> | null = null;
   app.addHook('onClose', async () => {
     await haConnecting?.catch(() => undefined);
     haStop?.();

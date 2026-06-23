@@ -35,9 +35,17 @@ export class FavoritesStore {
       const maxRow = this.db
         .prepare('SELECT COALESCE(MAX(sort_order), -1) AS m FROM favorites')
         .get() as { m: number };
-      this.db
-        .prepare('INSERT OR IGNORE INTO favorites (entity_id, sort_order) VALUES (?, ?)')
-        .run(entityId, maxRow.m + 1);
+      // INSERT OR IGNORE silently no-ops when the entity is already a favorite,
+      // leaving sort_order unchanged and giving the caller no signal. Use a
+      // conditional INSERT so duplicates are skipped without the silent no-op.
+      const existing = this.db
+        .prepare('SELECT 1 FROM favorites WHERE entity_id = ?')
+        .get(entityId);
+      if (!existing) {
+        this.db
+          .prepare('INSERT INTO favorites (entity_id, sort_order) VALUES (?, ?)')
+          .run(entityId, maxRow.m + 1);
+      }
     } else {
       this.db.prepare('DELETE FROM favorites WHERE entity_id = ?').run(entityId);
     }
