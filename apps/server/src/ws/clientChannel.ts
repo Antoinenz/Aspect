@@ -54,12 +54,20 @@ export class ClientHub {
       void this.serviceCaller(parsed.domain, parsed.service, parsed.entityId, parsed.data);
     }
     if (parsed.type === 'set_favorite') {
-      this.favorites.set(parsed.entityId, parsed.favorite);
-      this.broadcastFavorites();
+      try {
+        this.favorites.set(parsed.entityId, parsed.favorite);
+        this.broadcastFavorites();
+      } catch (err) {
+        console.error('Failed to persist favorite change:', err);
+      }
     }
     if (parsed.type === 'reorder_favorites') {
-      this.favorites.reorder(parsed.entityIds);
-      this.broadcastFavorites();
+      try {
+        this.favorites.reorder(parsed.entityIds);
+        this.broadcastFavorites();
+      } catch (err) {
+        console.error('Failed to persist favorites reorder:', err);
+      }
     }
   }
 
