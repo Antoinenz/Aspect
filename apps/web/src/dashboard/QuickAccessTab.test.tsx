@@ -56,7 +56,7 @@ describe('QuickAccessTab', () => {
     expect(screen.getByRole('button', { name: /done/i })).toBeInTheDocument();
   });
 
-  it('removes a favorite in edit mode', async () => {
+  it('removes a favorite in edit mode and commits on Done', async () => {
     useConnectionStore.setState({
       ...base,
       entities: { 'light.kitchen_lamp': e('light.kitchen_lamp') },
@@ -65,7 +65,11 @@ describe('QuickAccessTab', () => {
     render(<QuickAccessTab rooms={[]} onSelect={() => {}} onSelectRoom={() => {}} />);
     await userEvent.click(screen.getByRole('button', { name: /edit favorites/i }));
     await userEvent.click(screen.getByRole('button', { name: /remove kitchen lamp/i }));
-    expect(sent.some((s) => JSON.stringify(s) === JSON.stringify(['setFavorite', 'light.kitchen_lamp', false]))).toBe(true);
+    // Removal is deferred — no message sent yet; the tile should be gone from the edit grid.
+    expect(sent).toHaveLength(0);
+    // Pressing Done commits via a single reorder_favorites with the surviving IDs (empty here).
+    await userEvent.click(screen.getByRole('button', { name: /done/i }));
+    expect(sent.some((s) => Array.isArray(s) && s[0] === 'reorderFavorites' && JSON.stringify(s[1]) === '[]')).toBe(true);
   });
 
   it('saves order when Done is pressed', async () => {

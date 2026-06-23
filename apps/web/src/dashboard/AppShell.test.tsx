@@ -3,6 +3,7 @@ import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { AppShell } from './AppShell.js';
 import { useConnectionStore } from '../store/connectionStore.js';
+import { useDemoStore } from '../demo/demoStore.js';
 import type { EntityState } from '@aspect/shared';
 
 const e = (id: string, state = 'on'): EntityState => ({ entityId: id, state, attributes: {}, lastChanged: 't', lastUpdated: 't' });
@@ -20,7 +21,11 @@ const withKitchen = () => useConnectionStore.setState({
 });
 
 describe('AppShell', () => {
-  beforeEach(() => useConnectionStore.setState({ ...base }));
+  beforeEach(() => {
+    // Reset demo store so state leaked from other test files doesn't affect AppShell.
+    useDemoStore.setState({ demo: false });
+    useConnectionStore.setState({ ...base });
+  });
 
   it('renders the nav with Home and Settings', () => {
     render(<AppShell />);

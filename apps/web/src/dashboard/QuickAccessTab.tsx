@@ -97,16 +97,12 @@ export function QuickAccessTab({
   }
 
   function finishEdit(): void {
-    // Read the latest order from state rather than the closure to avoid any
-    // stale-value window between the last setOrder call and this render.
-    setOrder((currentOrder) => {
-      // A single reorder_favorites message is atomic on the server — no split
-      // between setFavorite(id, false) and reorderFavorites that a concurrent
-      // server push could slip into and clobber.
-      reorderFavorites(currentOrder);
-      useConnectionStore.getState().applyFavorites(currentOrder);
-      return currentOrder;
-    });
+    // `order` is always current here: finishEdit is a plain (non-memoized)
+    // function re-declared each render, so it closes over the latest value.
+    // A single reorder_favorites message is atomic on the server — eliminates
+    // the split-command race that the old setFavorite+reorderFavorites pair had.
+    reorderFavorites(order);
+    useConnectionStore.getState().applyFavorites(order);
     setEditing(false);
   }
 
