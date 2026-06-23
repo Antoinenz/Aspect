@@ -12,7 +12,7 @@ const room = (areaId: string, name: string, entities: EntityState[]): Room => ({
   name,
   entities: entities.map((entity) => ({
     entity, name: entity.attributes.friendly_name as string ?? entity.entityId,
-    domain: entity.entityId.split('.')[0]!, battery: null, wide: false,
+    domain: entity.entityId.split('.')[0]!, battery: null, wide: false, registryDeviceClass: null,
   })),
 });
 

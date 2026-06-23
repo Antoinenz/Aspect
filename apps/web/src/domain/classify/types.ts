@@ -80,8 +80,13 @@ export interface Rule {
   test: (ctx: ClassifyContext) => boolean;
 }
 
-export function contextFor(entity: EntityState, domain: string): ClassifyContext {
-  const dc = entity.attributes.device_class;
+export function contextFor(
+  entity: EntityState,
+  domain: string,
+  /** Registry-overridden device_class takes priority over the attribute value. */
+  registryDeviceClass?: string | null,
+): ClassifyContext {
+  const dc = registryDeviceClass ?? entity.attributes.device_class;
   const fn = entity.attributes.friendly_name;
   return {
     domain,

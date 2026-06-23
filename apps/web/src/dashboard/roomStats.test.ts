@@ -5,7 +5,7 @@ import type { EntityState } from '@aspect/shared';
 
 const re = (id: string, state: string) => ({
   entity: { entityId: id, state, attributes: {}, lastChanged: 't', lastUpdated: 't' } as EntityState,
-  name: id, domain: id.split('.')[0]!, battery: null, wide: false,
+  name: id, domain: id.split('.')[0]!, battery: null, wide: false, registryDeviceClass: null,
 });
 
 describe('roomsOverview', () => {

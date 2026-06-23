@@ -5,7 +5,7 @@ import type { FilterKind } from '../domain/classify/index.js';
 export type { FilterKind };
 
 function matchesFilter(re: RoomEntity, kind: FilterKind): boolean {
-  return filterCategoryForKind(classifyDevice(re.entity)) === kind;
+  return filterCategoryForKind(classifyDevice(re.entity, re.registryDeviceClass)) === kind;
 }
 
 export interface FilteredRoom {

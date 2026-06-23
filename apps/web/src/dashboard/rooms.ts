@@ -9,6 +9,11 @@ export interface RoomEntity {
   battery: number | null;
   /** Render as a 2-column wide tile (climate, media). */
   wide: boolean;
+  /**
+   * Registry-overridden device_class (RegistryEntry.deviceClass). Passed to
+   * classifyDevice so that user overrides in HA are respected for icons/filters.
+   */
+  registryDeviceClass: string | null;
 }
 
 export interface Room {
@@ -40,8 +45,10 @@ function isVisible(entity: EntityState, reg: RegistryEntry | undefined): boolean
   return isSupported(entity.entityId) || domain === 'media_player';
 }
 
-function batteryOf(entity: EntityState): number | null {
-  if (entity.attributes.device_class !== 'battery') return null;
+function batteryOf(entity: EntityState, reg: RegistryEntry | undefined): number | null {
+  // Check registry deviceClass first — it is the user-authoritative override.
+  const dc = reg?.deviceClass ?? entity.attributes.device_class;
+  if (dc !== 'battery') return null;
   const n = Number(entity.state);
   return Number.isFinite(n) ? Math.round(n) : null;
 }
@@ -61,7 +68,7 @@ export function buildRooms(
   const deviceBattery = new Map<string, number>();
   for (const entity of all) {
     const reg = regByEntity.get(entity.entityId);
-    const batt = batteryOf(entity);
+    const batt = batteryOf(entity, reg);
     if (reg?.deviceId && batt !== null) deviceBattery.set(reg.deviceId, batt);
   }
 
@@ -97,6 +104,7 @@ export function buildRooms(
       domain,
       battery,
       wide: WIDE_DOMAINS.has(domain),
+      registryDeviceClass: p.reg?.deviceClass ?? null,
     };
     const list = byArea.get(p.areaId);
     if (list) list.push(re); else byArea.set(p.areaId, [re]);

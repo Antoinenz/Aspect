@@ -48,13 +48,16 @@ const ICONS: Record<DeviceKind, string> = {
 /**
  * Classifies an entity into a fine-grained DeviceKind.
  * Priority: explicit `icon` attribute → device_class → name heuristics → domain fallback.
+ *
+ * Pass `registryDeviceClass` (from RegistryEntry.deviceClass) when available so that
+ * user-overridden device_class values in the entity registry are respected.
  */
-export function classifyDevice(entity: EntityState): DeviceKind {
+export function classifyDevice(entity: EntityState, registryDeviceClass?: string | null): DeviceKind {
   const icon = entity.attributes.icon;
   const fromIcon = classifyByIconAttr(typeof icon === 'string' ? icon : null);
   if (fromIcon) return fromIcon;
 
-  const ctx = contextFor(entity, domainOf(entity.entityId));
+  const ctx = contextFor(entity, domainOf(entity.entityId), registryDeviceClass);
   for (const rule of ALL_RULES) {
     if (rule.test(ctx)) return rule.kind;
   }

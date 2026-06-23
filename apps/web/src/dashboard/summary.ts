@@ -62,7 +62,9 @@ export function buildSummary(
   let weather: SummaryData['weather'] = null;
 
   for (const e of Object.values(entities)) {
-    const dc = typeof e.attributes.device_class === 'string' ? e.attributes.device_class : null;
+    const reg = regByEntity.get(e.entityId);
+    // Prefer the registry-overridden device_class (user-authoritative) over the attribute value.
+    const dc = reg?.deviceClass ?? (typeof e.attributes.device_class === 'string' ? e.attributes.device_class : null);
     switch (domainOf(e.entityId)) {
       case 'climate': {
         thermostats.push(e.entityId);
@@ -132,7 +134,7 @@ export function buildSummary(
     const reg = regByEntity.get(e.entityId);
     if (reg?.hidden || reg?.disabled) continue;
     if (reg?.entityCategory === 'diagnostic' || reg?.entityCategory === 'config') continue;
-    const dc = typeof e.attributes.device_class === 'string' ? e.attributes.device_class : null;
+    const dc = reg?.deviceClass ?? (typeof e.attributes.device_class === 'string' ? e.attributes.device_class : null);
     if (dc === 'battery') continue;
     if (NON_DEVICE_DOMAINS.has(domainOf(e.entityId))) continue;
     deviceCount += 1;
