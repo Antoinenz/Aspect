@@ -22,8 +22,13 @@ export async function startServer(
     favorites: new FavoritesStore(config.dbPath),
   });
 
+  // Track both the in-flight connection promise and the resolved stop handle so
+  // onClose can cancel a connection that is still being established when the
+  // server shuts down (avoids leaking the HA WebSocket and its reconnect timers).
   let haStop: (() => void) | null = null;
+  let haConnecting: Promise<unknown> | null = null;
   app.addHook('onClose', async () => {
+    await haConnecting?.catch(() => undefined);
     haStop?.();
   });
 
@@ -32,13 +37,14 @@ export async function startServer(
   console.log(`Aspect server listening on http://${config.host}:${config.port}`);
 
   if (config.haUrl && config.haToken) {
+    haConnecting = startHaConnection({
+      url: config.haUrl,
+      token: config.haToken,
+      cache: app.haCache,
+      hub: app.clientHub,
+    });
     try {
-      const ha = await startHaConnection({
-        url: config.haUrl,
-        token: config.haToken,
-        cache: app.haCache,
-        hub: app.clientHub,
-      });
+      const ha = await haConnecting;
       app.clientHub.setServiceCaller(ha.callService);
       haStop = ha.stop;
       // eslint-disable-next-line no-console
@@ -47,6 +53,8 @@ export async function startServer(
       app.clientHub.setStatus('degraded', false);
       // eslint-disable-next-line no-console
       console.error('Failed to connect to Home Assistant:', err);
+    } finally {
+      haConnecting = null;
     }
   } else {
     app.clientHub.setStatus('degraded', false);
