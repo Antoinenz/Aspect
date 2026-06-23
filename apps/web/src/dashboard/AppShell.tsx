@@ -49,8 +49,14 @@ export function AppShell(): ReactElement {
         favorites: DEMO_FAVORITES,
       });
     } else if (wasDemo) {
-      // Transitioning from demo → real: clear demo data so App.tsx reconnects.
+      // Transitioning from demo → real: atomically clear ALL demo state —
+      // including link and serverStatus — before App.tsx's useEffect calls
+      // connectToServer(). This prevents a window where the WebSocket connects
+      // and delivers a status message while haConnected is still true from demo,
+      // which would skip the loading screen and briefly render AppShell with
+      // stale demo entities.
       useConnectionStore.setState({
+        link: 'disconnected',
         serverStatus: null,
         haConnected: false,
         entities: {},
