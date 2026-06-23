@@ -6,7 +6,7 @@
 
 **A gorgeous, responsive, open-source dashboard for Home Assistant.**
 
-Apple Home–inspired polish, auto-organized by room, friendly enough for the whole family.
+Apple Home-inspired polish, auto-organized by room, friendly enough for the whole family.
 
 </div>
 
@@ -23,20 +23,20 @@ A small server sits between your browser and Home Assistant, so **the HA token n
 
 ## Features
 
-- 🏠 **Auto-generated room dashboard** — areas become tabs; devices become tiles, instantly.
-- 🎯 **Smart device classification** — every entity is automatically sorted into a device kind (lights, climate, security, media, locks, sensors, ...), powering the Lights / Climate / Security / Playing filter pills with zero configuration.
-- 🎛️ **Real controls** — lights (brightness, color temperature), switches, scenes, covers (position), climate (setpoint & mode), fans, locks, media players (play/volume/source), scripts, automations, buttons, and helpers (select/number).
-- ✨ **Polished, native feel** — Apple Home–inspired design language: frosted translucent squircle tiles, MDI icons, Plus Jakarta Sans, adaptive light/dark, reduced-motion aware (including all motion-based animations).
-- 🔋 **Quiet by default** — diagnostic/config noise is filtered out; battery and secondary readings are attached to their device, not scattered as clutter.
-- ⚡ **Live & responsive** — real-time state over WebSocket with optimistic updates; resilient reconnection.
-- 🧭 **Home, Favourites & Map tabs** — a Home tab with an at-a-glance summary (presence, climate, alerts, recent activity), a Favourites tab for pinned devices/scenes (synced across every family device, server-stored), and a Map tab showing where family members are via device trackers.
-- 🎨 **Personalize** — light/dark/auto theme and a built-in demo mode to try the full UI without a Home Assistant connection.
-- 🔒 **Secure by design** — a single server-side connection to Home Assistant; clients never hold your HA token.
+- **Auto-generated room dashboard** — areas become tabs; devices become tiles, instantly.
+- **Smart device classification** — every entity is automatically sorted into a device kind (lights, climate, security, media, locks, sensors, ...), powering the Lights / Climate / Security / Playing filter pills with zero configuration.
+- **Real controls** — lights (brightness, color temperature), switches, scenes, covers (position), climate (setpoint & mode), fans, locks, media players (play/volume/source), scripts, automations, buttons, and helpers (select/number).
+- **Polished, native feel** — Apple Home-inspired design language: frosted translucent squircle tiles, MDI icons, Plus Jakarta Sans, adaptive light/dark, reduced-motion aware (including all motion-based animations).
+- **Quiet by default** — diagnostic/config noise is filtered out; battery and secondary readings are attached to their device, not scattered as clutter.
+- **Live & responsive** — real-time state over WebSocket with optimistic updates; resilient reconnection.
+- **Home, Favourites & Map tabs** — a Home tab with an at-a-glance summary (presence, climate, alerts, recent activity), a Favourites tab for pinned devices/scenes (synced across every family device, server-stored), and a Map tab showing where family members are via device trackers.
+- **Personalize** — light/dark/auto theme and a built-in demo mode to try the full UI without a Home Assistant connection.
+- **Secure by design** — a single server-side connection to Home Assistant; clients never hold your HA token.
 
 ## Architecture
 
 ```
-Family devices (PWA clients)  ──WS/HTTP──►  Aspect server  ──WS──►  Home Assistant
+Family devices (PWA clients)  --WS/HTTP-->  Aspect server  --WS-->  Home Assistant
    phones · tablets · desktop                Node + SQLite            WebSocket API
 ```
 
@@ -77,9 +77,9 @@ Then open **http://127.0.0.1:8099**. Without `HA_URL`/`HA_TOKEN`, the server sti
 | `HA_URL`         | _(none)_         | Home Assistant base URL, e.g. `http://host:8123`.  |
 | `HA_TOKEN`       | _(none)_         | Long-lived access token (held server-side only).   |
 | `PORT`           | `8099`           | Port the Aspect server listens on.                 |
-| `HOST`           | `0.0.0.0`        | Bind interface.                                     |
+| `HOST`           | `0.0.0.0`        | Bind interface.                                    |
 | `ASPECT_WEB_DIR` | _(none)_         | Path to the built web assets to serve in prod.     |
-| `ASPECT_DB`      | `data/aspect.db` | SQLite database file (favorites/settings).          |
+| `ASPECT_DB`      | `data/aspect.db` | SQLite database file (favorites/settings).         |
 
 ### Handy commands
 
@@ -96,7 +96,7 @@ HA_URL=... HA_TOKEN=... pnpm --filter @aspect/server dump:ha
 
 - [x] Server-as-hub: HA connection, cache, live fan-out
 - [x] Per-domain device controls + command channel
-- [x] Apple Home–inspired design system (Tailwind + Radix + MDI, squircles)
+- [x] Apple Home-inspired design system (Tailwind + Radix + MDI, squircles)
 - [x] Tabbed app shell with auto-generated room tabs, filtering & battery-on-device
 - [x] Smart device classification powering Lights/Climate/Security/Playing filters
 - [x] Favorites persistence (SQLite, synced) + **Favourites** tab
