@@ -38,8 +38,9 @@ export function connectToServer(url?: string): () => void {
   };
 
   const scheduleReconnect = (): void => {
-    timer = setTimeout(open, backoff);
+    const delay = backoff;
     backoff = Math.min(backoff * 2, MAX_BACKOFF_MS);
+    timer = setTimeout(open, delay);
   };
 
   open();
