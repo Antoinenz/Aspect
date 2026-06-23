@@ -70,6 +70,8 @@ HA_URL="http://homeassistant.local:8123" HA_TOKEN="<your token>" ASPECT_WEB_DIR=
 
 Then open **http://127.0.0.1:8099**. Without `HA_URL`/`HA_TOKEN`, the server still runs (degraded mode) so you can see the UI shell.
 
+For a real install on a Linux box, see [`deploy/`](deploy/) — it ships a hardened systemd unit, an env-file template, and step-by-step install instructions.
+
 ### Configuration
 
 | Env var          | Default          | Purpose                                            |

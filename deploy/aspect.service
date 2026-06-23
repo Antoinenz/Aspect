@@ -1,0 +1,48 @@
+[Unit]
+Description=Aspect — Home Assistant dashboard
+Documentation=https://github.com/Antoinenz/Aspect
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=aspect
+Group=aspect
+WorkingDirectory=/opt/aspect
+
+# Secrets and configuration live here (HA_URL, HA_TOKEN, PORT, ...).
+# See deploy/aspect.env.example.
+EnvironmentFile=/etc/aspect/aspect.env
+Environment=NODE_ENV=production
+
+# Use an absolute node path so the unit isn't sensitive to $PATH.
+# Adjust if node lives elsewhere (e.g. /usr/local/bin/node, nvm, asdf).
+ExecStart=/usr/bin/node apps/server/dist/server.js
+
+Restart=on-failure
+RestartSec=5
+KillSignal=SIGINT
+TimeoutStopSec=20
+
+# --- Sandboxing ---
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+# SQLite DB lives under ASPECT_DB; default is data/aspect.db relative to
+# WorkingDirectory. Keep this in sync with that path.
+ReadWritePaths=/opt/aspect/data
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectClock=true
+ProtectHostname=true
+RestrictNamespaces=true
+RestrictRealtime=true
+RestrictSUIDSGID=true
+LockPersonality=true
+SystemCallArchitectures=native
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+
+[Install]
+WantedBy=multi-user.target
