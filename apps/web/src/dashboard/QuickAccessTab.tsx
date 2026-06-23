@@ -10,7 +10,7 @@ import { iconFor, tintFor } from '../domain/icons.js';
 import { roomIcon } from './roomIcon.js';
 import { formatState, isActive, friendlyName, domainOf } from '../domain/entities.js';
 import { tileAction } from '../domain/tileAction.js';
-import { setFavorite, reorderFavorites } from '../server-client/commands.js';
+import { reorderFavorites } from '../server-client/commands.js';
 import { useRoomFavourites } from './roomFavouritesStore.js';
 import { roomsOverview } from './roomStats.js';
 import type { EntityState } from '@aspect/shared';
@@ -97,14 +97,23 @@ export function QuickAccessTab({
   }
 
   function finishEdit(): void {
-    reorderFavorites(order);
-    useConnectionStore.getState().applyFavorites(order);
+    // Read the latest order from state rather than the closure to avoid any
+    // stale-value window between the last setOrder call and this render.
+    setOrder((currentOrder) => {
+      // A single reorder_favorites message is atomic on the server — no split
+      // between setFavorite(id, false) and reorderFavorites that a concurrent
+      // server push could slip into and clobber.
+      reorderFavorites(currentOrder);
+      useConnectionStore.getState().applyFavorites(currentOrder);
+      return currentOrder;
+    });
     setEditing(false);
   }
 
   function removeFromEdit(id: string): void {
+    // Only update local order; the removal is committed atomically by
+    // finishEdit via reorder_favorites (which acts as the authoritative list).
     setOrder((prev) => prev.filter((x) => x !== id));
-    setFavorite(id, false);
   }
 
   function handleDragEnd(event: DragEndEvent): void {
