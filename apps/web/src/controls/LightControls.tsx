@@ -38,8 +38,13 @@ export function LightControls({ entity }: { entity: EntityState }): ReactElement
     callService('light', isOn ? 'turn_off' : 'turn_on', id);
   };
   const setBrightness = (pct: number): void => {
-    optimistic(id, { state: pct > 0 ? 'on' : 'off', attributes: { brightness: Math.round((pct / 100) * 255) } });
-    callService('light', 'turn_on', id, { brightness_pct: pct });
+    if (pct === 0) {
+      optimistic(id, { state: 'off' });
+      callService('light', 'turn_off', id);
+    } else {
+      optimistic(id, { state: 'on', attributes: { brightness: Math.round((pct / 100) * 255) } });
+      callService('light', 'turn_on', id, { brightness_pct: pct });
+    }
   };
   const setTemp = (k: number): void => {
     optimistic(id, { attributes: { color_temp_kelvin: k } });
