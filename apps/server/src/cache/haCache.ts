@@ -62,8 +62,9 @@ export class HaCache {
 }
 
 function shallowEntityEqual(a: EntityState, b: EntityState): boolean {
-  // Home Assistant bumps `last_updated` whenever the state OR any attribute
-  // changes, so comparing it (plus state, defensively) detects real changes
-  // without an order-sensitive deep compare of attributes.
-  return a.state === b.state && a.lastUpdated === b.lastUpdated;
+  // `last_changed` is bumped whenever the state value changes; `last_updated`
+  // is bumped for state OR attribute changes. Comparing both timestamps catches
+  // attribute-only updates (same state, same last_changed, new last_updated)
+  // without needing a deep-equal of the attributes object.
+  return a.state === b.state && a.lastChanged === b.lastChanged && a.lastUpdated === b.lastUpdated;
 }
