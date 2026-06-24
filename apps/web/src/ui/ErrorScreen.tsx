@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react';
 import { motion } from 'motion/react';
-import { mdiLanDisconnect, mdiHomeOff, mdiFlask } from '@mdi/js';
+import { mdiLanDisconnect, mdiHomeOff, mdiFlask, mdiServerNetwork } from '@mdi/js';
 import { Icon } from './Icon.js';
 import { useDemoStore } from '../demo/demoStore.js';
 import { SQUIRCLE } from './tokens.js';
@@ -62,15 +62,26 @@ export function ErrorScreen({ kind }: { kind: 'server' | 'ha' }): ReactElement {
       {!isServer && (
         <motion.div
           variants={item}
-          className="absolute bottom-[max(32px,env(safe-area-inset-bottom))] left-0 right-0 flex justify-center px-6"
+          className="absolute bottom-[max(32px,env(safe-area-inset-bottom))] left-0 right-0 flex flex-col items-center justify-center gap-2 px-6"
         >
           <button
             type="button"
-            onClick={() => setDemo(true)}
+            onClick={() => {
+              window.location.hash = 'admin';
+            }}
             className="flex items-center gap-2 border border-white/15 bg-white/[0.06] px-5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-white/[0.1] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
             style={{ borderRadius: 14, cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties}
           >
-            <Icon path={mdiFlask} size={16} color="rgba(255,255,255,0.7)" />
+            <Icon path={mdiServerNetwork} size={16} color="rgba(255,255,255,0.7)" />
+            Configure server
+          </button>
+          <button
+            type="button"
+            onClick={() => setDemo(true)}
+            className="flex items-center gap-2 border border-white/10 bg-transparent px-5 py-2 text-[12.5px] font-semibold text-white/60 hover:text-white/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+            style={{ borderRadius: 14, cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties}
+          >
+            <Icon path={mdiFlask} size={14} color="rgba(255,255,255,0.55)" />
             Try demo mode
           </button>
         </motion.div>

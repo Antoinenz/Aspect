@@ -12,6 +12,7 @@ import { RoomsOverview } from './RoomsGrid.js';
 import { RoomView } from './RoomView.js';
 import { EntityDetailSheet } from './EntityDetailSheet.js';
 import { SettingsPage } from '../settings/SettingsPage.js';
+import { AdminPage } from '../admin/AdminPage.js';
 import { MapPage } from '../map/MapPage.js';
 
 type NavDir = 'forward' | 'backward';
@@ -71,6 +72,13 @@ export function AppShell(): ReactElement {
   const rooms = useMemo(() => buildRooms(entities, areas, devices, registry), [entities, areas, devices, registry]);
 
   const [section, setSection] = useState<Section>(() => {
+    // Direct-link support: hitting the SPA at #/admin (or #admin) drops the
+    // user straight into the admin page. This keeps the README's reference
+    // to "/admin" honest without us pulling in a router.
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash.replace(/^#\/?/, '');
+      if (hash === 'admin') return 'admin';
+    }
     const saved = localStorage.getItem('aspect-startup-section') as Section | null;
     const valid: Section[] = ['home', 'rooms', 'favorites', 'map', 'settings'];
     return saved && valid.includes(saved) ? saved : 'home';
@@ -146,7 +154,23 @@ export function AppShell(): ReactElement {
                 : <RoomsOverview rooms={rooms} onOpen={openRoom} />
             )}
             {section === 'map' && <MapPage />}
-            {section === 'settings' && <SettingsPage />}
+            {section === 'settings' && (
+              <SettingsPage
+                onOpenAdmin={() => {
+                  // Sub-nav: always feels forward going in.
+                  setNavDir('forward');
+                  setSection('admin');
+                }}
+              />
+            )}
+            {section === 'admin' && (
+              <AdminPage
+                onBack={() => {
+                  setNavDir('backward');
+                  setSection('settings');
+                }}
+              />
+            )}
           </div>
         </div>
       </main>

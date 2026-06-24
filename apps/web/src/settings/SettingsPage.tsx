@@ -4,6 +4,7 @@ import {
   mdiCheckCircle, mdiSync, mdiAlertCircleOutline,
   mdiAnimationPlay, mdiHomeOutline, mdiStarOutline,
   mdiViewGridOutline, mdiMapMarkerRadiusOutline, mdiFlask,
+  mdiChevronRight, mdiServerNetwork,
 } from '@mdi/js';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { useDemoStore } from '../demo/demoStore.js';
@@ -159,7 +160,7 @@ function StartupCard(): ReactElement {
   );
 }
 
-function ConnectionCard(): ReactElement {
+function ConnectionCard({ onOpenAdmin }: { onOpenAdmin: () => void }): ReactElement {
   const link = useConnectionStore((s) => s.link);
   const haConnected = useConnectionStore((s) => s.haConnected);
 
@@ -182,9 +183,26 @@ function ConnectionCard(): ReactElement {
 
   return (
     <Card title="Connection">
-      <div className="flex items-center gap-2.5">
-        <Icon path={icon} size={20} color={color} />
-        <span className="text-[15px] font-semibold">{text}</span>
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2.5">
+          <Icon path={icon} size={20} color={color} />
+          <span className="text-[15px] font-semibold">{text}</span>
+        </div>
+        <button
+          type="button"
+          onClick={onOpenAdmin}
+          className="mt-1 flex w-full items-center gap-3 border border-[var(--color-border)] px-3 py-2.5 text-left text-[var(--color-muted)] hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          style={squircle(13)}
+        >
+          <Icon path={mdiServerNetwork} size={20} />
+          <span className="flex-1">
+            <span className="block text-[13.5px] font-semibold">Server administration</span>
+            <span className="block text-[12px] text-[var(--color-muted)]">
+              Change the Home Assistant URL or token
+            </span>
+          </span>
+          <Icon path={mdiChevronRight} size={20} />
+        </button>
       </div>
     </Card>
   );
@@ -247,7 +265,7 @@ function AboutCard(): ReactElement {
   );
 }
 
-export function SettingsPage(): ReactElement {
+export function SettingsPage({ onOpenAdmin }: { onOpenAdmin: () => void }): ReactElement {
   return (
     <div>
       <div className="tab-header">
@@ -257,7 +275,7 @@ export function SettingsPage(): ReactElement {
         <ThemeCard />
         <MotionCard />
         <StartupCard />
-        <ConnectionCard />
+        <ConnectionCard onOpenAdmin={onOpenAdmin} />
         <DeveloperCard />
         <AboutCard />
       </div>

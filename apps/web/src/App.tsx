@@ -20,6 +20,22 @@ export function App(): ReactElement {
   const haConnected = useConnectionStore((s) => s.haConnected);
   const demo = useDemoStore((s) => s.demo);
 
+  // Bypass the loading/error gates when the user explicitly navigates to the
+  // admin page via the URL hash. Without this, a fresh install (no HA URL/token
+  // configured) would render ErrorScreen forever — and the admin page is the
+  // very thing you need to fix that.
+  const [forceShell, setForceShell] = useState(
+    typeof window !== 'undefined' && window.location.hash.replace(/^#\/?/, '') === 'admin',
+  );
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const onHash = (): void => {
+      setForceShell(window.location.hash.replace(/^#\/?/, '') === 'admin');
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
+
   // Skip WebSocket in demo mode; reconnect immediately when demo is turned off.
   useEffect(() => {
     if (demo) return;
@@ -52,9 +68,12 @@ export function App(): ReactElement {
     return () => clearTimeout(t);
   }, [serverDown]);
 
-  const showError = haOffline || (!demo && statusTimedOut) || (serverDown && serverTimedOut);
+  const rawShowError = haOffline || (!demo && statusTimedOut) || (serverDown && serverTimedOut);
   const errorKind = (haOffline || (!demo && statusTimedOut)) ? 'ha' : 'server';
-  const isLoading = !demo && !showError && !haConnected;
+  // forceShell only bypasses the HA-offline case — the server-down case is
+  // genuinely unrecoverable from the UI (the server isn't running).
+  const showError = rawShowError && !(forceShell && errorKind === 'ha');
+  const isLoading = !demo && !showError && !haConnected && !forceShell;
 
   return (
     <AnimatePresence mode="wait">

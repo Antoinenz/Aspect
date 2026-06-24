@@ -3,7 +3,7 @@ import {
   mdiMapMarkerRadiusOutline, mdiCogOutline,
 } from '@mdi/js';
 
-export type Section = 'home' | 'favorites' | 'rooms' | 'map' | 'settings';
+export type Section = 'home' | 'favorites' | 'rooms' | 'map' | 'settings' | 'admin';
 
 export interface NavDestination {
   id: Section;

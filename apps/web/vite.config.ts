@@ -39,9 +39,16 @@ export default defineConfig({
   ],
   server: {
     port: 5173,
+    // Bind to all interfaces so Tailscale / LAN devices can reach the dev
+    // server. Dev-only — production is served by the Aspect server itself.
+    host: true,
+    // Accept any Host: header (Vite 5+ rejects unknown hosts by default,
+    // which trips Tailscale MagicDNS names like `antoinepi`).
+    allowedHosts: true,
     proxy: {
       '/ws': { target: 'ws://127.0.0.1:8099', ws: true },
       '/health': { target: 'http://127.0.0.1:8099' },
+      '/api': { target: 'http://127.0.0.1:8099' },
     },
   },
 });

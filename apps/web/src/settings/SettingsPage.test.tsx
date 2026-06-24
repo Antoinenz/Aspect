@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { SettingsPage } from './SettingsPage.js';
@@ -24,33 +24,40 @@ describe('SettingsPage', () => {
   });
 
   it('switches the theme', async () => {
-    render(<SettingsPage />);
+    render(<SettingsPage onOpenAdmin={() => {}} />);
     await userEvent.click(screen.getByRole('button', { name: /dark/i }));
     expect(useThemeStore.getState().theme).toBe('dark');
     expect(document.documentElement.getAttribute('data-theme')).toBe('dark');
   });
 
   it('shows the connected status', () => {
-    render(<SettingsPage />);
+    render(<SettingsPage onOpenAdmin={() => {}} />);
     expect(screen.getByText(/connected to home assistant/i)).toBeInTheDocument();
   });
 
   it('shows a disconnected status', () => {
     useConnectionStore.setState({ ...base, link: 'disconnected', haConnected: false });
-    render(<SettingsPage />);
+    render(<SettingsPage onOpenAdmin={() => {}} />);
     expect(screen.getByText(/^disconnected$/i)).toBeInTheDocument();
   });
 
   it('toggles motion to reduced', async () => {
-    render(<SettingsPage />);
+    render(<SettingsPage onOpenAdmin={() => {}} />);
     await userEvent.click(screen.getByRole('button', { name: /reduced/i }));
     expect(useMotionStore.getState().motion).toBe('off');
     expect(document.documentElement.getAttribute('data-motion')).toBe('reduced');
   });
 
   it('shows the startup tab picker', () => {
-    render(<SettingsPage />);
+    render(<SettingsPage onOpenAdmin={() => {}} />);
     expect(screen.getByText(/tab shown when you open aspect/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /rooms/i })).toBeInTheDocument();
+  });
+
+  it('invokes onOpenAdmin when the server-administration link is clicked', async () => {
+    const onOpenAdmin = vi.fn();
+    render(<SettingsPage onOpenAdmin={onOpenAdmin} />);
+    await userEvent.click(screen.getByRole('button', { name: /server administration/i }));
+    expect(onOpenAdmin).toHaveBeenCalledOnce();
   });
 });

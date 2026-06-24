@@ -1,18 +1,17 @@
 import type { FastifyInstance } from 'fastify';
 import { buildApp } from './app.js';
 import type { AspectConfig } from './config.js';
-import { startHaConnection, type HaConnectionHandle } from './ha/connection.js';
 import { FavoritesStore } from './db/favoritesStore.js';
+import { ServerSettingsStore } from './db/serverSettingsStore.js';
 
 /**
  * Builds the app, starts listening, and (if configured) connects to Home
- * Assistant. Returns the running Fastify instance. Exported separately from the
- * process entry point (server.ts) so it can be started and torn down in tests
- * without side effects on import.
+ * Assistant via the supervisor. Returns the running Fastify instance.
  *
- * The `onClose` hook is registered BEFORE `listen()` — Fastify forbids adding
- * hooks once the instance is listening — and it stops the HA socket via a
- * mutable handle assigned after the connection is established.
+ * The `onClose` hook is registered BEFORE `listen()` — Fastify forbids
+ * adding hooks once the instance is listening — and stops the supervisor,
+ * which serializes against any in-flight (re)connect started by an admin
+ * write.
  */
 export async function startServer(
   config: AspectConfig,
@@ -20,49 +19,44 @@ export async function startServer(
   const app = await buildApp({
     webDir: config.webDir,
     favorites: new FavoritesStore(config.dbPath),
+    serverSettings: new ServerSettingsStore(config.dbPath),
+    envHa: { url: config.haUrl, token: config.haToken },
   });
 
-  // Track both the in-flight connection promise and the resolved stop handle so
-  // onClose can cancel a connection that is still being established when the
-  // server shuts down (avoids leaking the HA WebSocket and its reconnect timers).
-  let haStop: (() => void) | null = null;
-  let haConnecting: Promise<HaConnectionHandle> | null = null;
   app.addHook('onClose', async () => {
-    await haConnecting?.catch(() => undefined);
-    haStop?.();
+    await app.haSupervisor.stop();
   });
 
   await app.listen({ port: config.port, host: config.host });
   // eslint-disable-next-line no-console
   console.log(`Aspect server listening on http://${config.host}:${config.port}`);
 
-  if (config.haUrl && config.haToken) {
-    haConnecting = startHaConnection({
-      url: config.haUrl,
-      token: config.haToken,
-      cache: app.haCache,
-      hub: app.clientHub,
-    });
-    try {
-      const ha = await haConnecting;
-      app.clientHub.setServiceCaller(ha.callService);
-      haStop = ha.stop;
-      // eslint-disable-next-line no-console
-      console.log(`Connected to Home Assistant at ${config.haUrl}`);
-    } catch (err) {
-      app.clientHub.setStatus('degraded', false);
-      // eslint-disable-next-line no-console
-      console.error('Failed to connect to Home Assistant:', err);
-    } finally {
-      haConnecting = null;
-    }
-  } else {
-    app.clientHub.setStatus('degraded', false);
+  const status = app.haSupervisor.status();
+  if (status.effective.source === 'none') {
     // eslint-disable-next-line no-console
     console.warn(
-      'HA_URL/HA_TOKEN not set — running without a Home Assistant connection.',
+      'HA_URL/HA_TOKEN not set and no stored override — running without a Home Assistant connection. Configure via /api/admin/settings or the admin page.',
     );
   }
+
+  // Kick off the initial connect in the background — don't make the HTTP
+  // server's readiness wait on a potentially slow HA handshake.
+  app.haSupervisor
+    .start()
+    .then(() => {
+      const s = app.haSupervisor.status();
+      if (s.haConnected) {
+        // eslint-disable-next-line no-console
+        console.log(`Connected to Home Assistant at ${s.effective.url}`);
+      } else if (s.lastError) {
+        // eslint-disable-next-line no-console
+        console.error('Failed to connect to Home Assistant:', s.lastError);
+      }
+    })
+    .catch((err) => {
+      // eslint-disable-next-line no-console
+      console.error('HA supervisor start failed unexpectedly:', err);
+    });
 
   return app;
 }
