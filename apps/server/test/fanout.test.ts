@@ -6,7 +6,7 @@ import { buildApp } from '../src/app.js';
 import { HaCache } from '../src/cache/haCache.js';
 import { startHaConnection, type HaConnectionHandle } from '../src/ha/connection.js';
 import { MockHaServer } from './helpers/mockHaServer.js';
-import { listen } from './helpers/wsTestClient.js';
+import { listen, bootstrapAdminCookie } from './helpers/wsTestClient.js';
 
 let app: FastifyInstance | undefined;
 let mock: MockHaServer | undefined;
@@ -36,7 +36,8 @@ describe('end-to-end fan-out', () => {
       ],
     });
     const cache = new HaCache();
-    app = await buildApp({ cache });
+    app = await buildApp({ cache, cookieSecret: 'x'.repeat(40) });
+    const cookie = await bootstrapAdminCookie(app);
     const base = await listen(app);
     handle = await startHaConnection({
       url: mock.url,
@@ -46,7 +47,7 @@ describe('end-to-end fan-out', () => {
     });
 
     const received: ServerToClientMessage[] = [];
-    const socket = new WebSocket(`${base}/ws`);
+    const socket = new WebSocket(`${base}/ws`, { headers: { cookie } });
     socket.on('message', (data) =>
       received.push(JSON.parse(data.toString()) as ServerToClientMessage),
     );

@@ -4,6 +4,15 @@ import { buildApp } from '../../src/app.js';
 import { ServerSettingsStore } from '../../src/db/serverSettingsStore.js';
 import { HaSupervisor } from '../../src/ha/haSupervisor.js';
 
+/** Sign up the first user (auto-admin) and return their session cookie header. */
+async function asAdmin(app: FastifyInstance): Promise<string> {
+  const res = await app.inject({
+    method: 'POST', url: '/api/auth/signup',
+    payload: { username: 'admin', password: 'longenough', displayName: 'Admin' },
+  });
+  return res.headers['set-cookie'] as string;
+}
+
 let app: FastifyInstance | undefined;
 
 beforeEach(() => {
@@ -43,7 +52,23 @@ async function makeApp(opts: {
   vi.spyOn(supervisor, 'reconnect').mockResolvedValue();
   vi.spyOn(supervisor, 'stop').mockResolvedValue();
   vi.spyOn(supervisor, 'test').mockResolvedValue();
-  return buildApp({ serverSettings: settings, envHa, haSupervisor: supervisor });
+  const built = await buildApp({
+    serverSettings: settings, envHa, haSupervisor: supervisor,
+    cookieSecret: 'x'.repeat(40),
+  });
+  // Sign up an admin once at boot and patch inject() to always carry the
+  // session cookie. Lets the rest of the test bodies stay focused on
+  // route semantics instead of auth plumbing.
+  const cookie = await asAdmin(built);
+  const orig = built.inject.bind(built);
+  built.inject = ((args: Parameters<typeof orig>[0]) => {
+    if (typeof args === 'string') return orig(args);
+    return orig({
+      ...args,
+      headers: { ...(args.headers ?? {}), cookie },
+    });
+  }) as typeof built.inject;
+  return built;
 }
 
 describe('admin routes', () => {

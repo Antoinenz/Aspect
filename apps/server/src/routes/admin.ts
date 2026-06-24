@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import { requireAdmin } from '../auth/guards.js';
 
 interface PatchBody {
   haUrl?: unknown;
@@ -37,11 +38,13 @@ function isValidHttpUrl(value: string): boolean {
  * UI shows "Configured" / "Not configured" instead.
  */
 export async function adminRoutes(app: FastifyInstance): Promise<void> {
-  app.get('/api/admin/settings', async () => {
+  const adminGuard = { onRequest: requireAdmin() };
+
+  app.get('/api/admin/settings', adminGuard, async () => {
     return app.haSupervisor.status();
   });
 
-  app.put('/api/admin/settings', async (request, reply) => {
+  app.put('/api/admin/settings', adminGuard, async (request, reply) => {
     const body = (request.body ?? {}) as PatchBody;
     const haUrl = trimOrNull(body.haUrl);
     if (!haUrl) {
@@ -68,13 +71,13 @@ export async function adminRoutes(app: FastifyInstance): Promise<void> {
     return app.haSupervisor.status();
   });
 
-  app.delete('/api/admin/settings', async () => {
+  app.delete('/api/admin/settings', adminGuard, async () => {
     app.serverSettings.clear();
     void app.haSupervisor.reconnect();
     return app.haSupervisor.status();
   });
 
-  app.post('/api/admin/test-connection', async (request, reply) => {
+  app.post('/api/admin/test-connection', adminGuard, async (request, reply) => {
     const body = (request.body ?? {}) as TestBody;
     const haUrl = trimOrNull(body.haUrl);
     const haToken = trimOrNull(body.haToken);

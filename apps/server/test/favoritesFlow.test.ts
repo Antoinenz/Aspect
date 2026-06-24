@@ -8,7 +8,7 @@ import {
 import { buildApp } from '../src/app.js';
 import { HaCache } from '../src/cache/haCache.js';
 import { FavoritesStore } from '../src/db/favoritesStore.js';
-import { listen } from './helpers/wsTestClient.js';
+import { listen, bootstrapAdminCookie } from './helpers/wsTestClient.js';
 
 let app: FastifyInstance | undefined;
 
@@ -20,11 +20,12 @@ afterEach(async () => {
 describe('favorites flow', () => {
   it('persists a pin from a client and rebroadcasts the favorites list', async () => {
     const favorites = new FavoritesStore(':memory:');
-    app = await buildApp({ cache: new HaCache(), favorites });
+    app = await buildApp({ cache: new HaCache(), favorites, cookieSecret: 'x'.repeat(40) });
+    const cookie = await bootstrapAdminCookie(app);
     const base = await listen(app);
 
     const received: ServerToClientMessage[] = [];
-    const socket = new WebSocket(`${base}/ws`);
+    const socket = new WebSocket(`${base}/ws`, { headers: { cookie } });
     socket.on('message', (d) =>
       received.push(JSON.parse(d.toString()) as ServerToClientMessage),
     );

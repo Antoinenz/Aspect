@@ -9,7 +9,7 @@ import { buildApp } from '../src/app.js';
 import { HaCache } from '../src/cache/haCache.js';
 import { ClientHub } from '../src/ws/clientChannel.js';
 import { FavoritesStore } from '../src/db/favoritesStore.js';
-import { listen } from './helpers/wsTestClient.js';
+import { listen, bootstrapAdminCookie } from './helpers/wsTestClient.js';
 
 let app: FastifyInstance | undefined;
 
@@ -19,9 +19,9 @@ afterEach(async () => {
 });
 
 /** Collect the first `count` parsed messages from a ws connection. */
-function collect(url: string, count: number): Promise<ServerToClientMessage[]> {
+function collect(url: string, count: number, cookie: string): Promise<ServerToClientMessage[]> {
   return new Promise((resolve, reject) => {
-    const socket = new WebSocket(url);
+    const socket = new WebSocket(url, { headers: { cookie } });
     const msgs: ServerToClientMessage[] = [];
     socket.on('message', (data) => {
       msgs.push(JSON.parse(data.toString()) as ServerToClientMessage);
@@ -51,9 +51,10 @@ describe('GET /ws (ClientHub)', () => {
       devices: [],
       registry: [],
     });
-    app = await buildApp({ cache });
+    app = await buildApp({ cache, cookieSecret: 'x'.repeat(40) });
+    const cookie = await bootstrapAdminCookie(app);
     const base = await listen(app);
-    const [first, second] = await collect(`${base}/ws`, 2);
+    const [first, second] = await collect(`${base}/ws`, 2, cookie);
     expect(isServerToClientMessage(first)).toBe(true);
     expect(first?.type).toBe('status');
     expect(second?.type).toBe('snapshot');
@@ -65,9 +66,10 @@ describe('GET /ws (ClientHub)', () => {
 
   it('broadcasts an entity update to a connected client', async () => {
     const cache = new HaCache();
-    app = await buildApp({ cache });
+    app = await buildApp({ cache, cookieSecret: 'x'.repeat(40) });
+    const cookie = await bootstrapAdminCookie(app);
     const base = await listen(app);
-    const socket = new WebSocket(`${base}/ws`);
+    const socket = new WebSocket(`${base}/ws`, { headers: { cookie } });
     const msgs: ServerToClientMessage[] = [];
 
     await new Promise<void>((resolve, reject) => {

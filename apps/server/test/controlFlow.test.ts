@@ -6,7 +6,7 @@ import { buildApp } from '../src/app.js';
 import { HaCache } from '../src/cache/haCache.js';
 import { startHaConnection, type HaConnectionHandle } from '../src/ha/connection.js';
 import { MockHaServer } from './helpers/mockHaServer.js';
-import { listen } from './helpers/wsTestClient.js';
+import { listen, bootstrapAdminCookie } from './helpers/wsTestClient.js';
 
 let app: FastifyInstance | undefined;
 let mock: MockHaServer | undefined;
@@ -25,12 +25,13 @@ describe('control flow', () => {
   it('forwards a client call_service all the way to Home Assistant', async () => {
     mock = await MockHaServer.start({ token: 'secret', states: [] });
     const cache = new HaCache();
-    app = await buildApp({ cache });
+    app = await buildApp({ cache, cookieSecret: 'x'.repeat(40) });
+    const cookie = await bootstrapAdminCookie(app);
     const base = await listen(app);
     handle = await startHaConnection({ url: mock.url, token: 'secret', cache, hub: app.clientHub });
     app.clientHub.setServiceCaller(handle.callService);
 
-    const socket = new WebSocket(`${base}/ws`);
+    const socket = new WebSocket(`${base}/ws`, { headers: { cookie } });
     await new Promise<void>((resolve) => socket.on('open', resolve));
     socket.send(JSON.stringify(createCallServiceMessage('light', 'turn_on', 'light.k', { brightness_pct: 60 })));
 

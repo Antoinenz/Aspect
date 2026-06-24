@@ -125,10 +125,25 @@ export const clientChannel = fp(
     const hub = new ClientHub(opts.cache, opts.favorites);
     app.decorate('clientHub', hub);
     app.decorate('haCache', opts.cache);
-    app.get('/ws', { websocket: true }, (socket) => {
-      hub.add(socket);
-      socket.on('message', (raw) => hub.handleClientMessage(raw.toString()));
-    });
+    app.get(
+      '/ws',
+      {
+        websocket: true,
+        // Auth happens at the HTTP upgrade — anonymous clients are 401'd
+        // before the WebSocket handshake completes, so they never reach
+        // the broadcast loop.
+        onRequest: async (request, reply) => {
+          if (!request.user) {
+            reply.code(401).send({ error: 'Authentication required.' });
+            return reply;
+          }
+        },
+      },
+      (socket) => {
+        hub.add(socket);
+        socket.on('message', (raw) => hub.handleClientMessage(raw.toString()));
+      },
+    );
   },
   { name: 'client-channel' },
 );
