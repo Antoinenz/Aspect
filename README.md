@@ -30,6 +30,8 @@ A small server sits between your browser and Home Assistant, so **the HA token n
 - **Quiet by default** — diagnostic/config noise is filtered out; battery and secondary readings are attached to their device, not scattered as clutter.
 - **Live & responsive** — real-time state over WebSocket with optimistic updates; resilient reconnection.
 - **Home, Favourites & Map tabs** — a Home tab with an at-a-glance summary (presence, climate, alerts, recent activity), a Favourites tab for pinned devices/scenes (synced across every family device, server-stored), and a Map tab showing where family members are via device trackers.
+- **Real URLs** — every page has its own path (`/home`, `/favourites`, `/rooms`, `/rooms/:areaId`, `/map`, `/settings`, `/admin`). Refreshing or sharing a link lands you exactly where you were.
+- **Built-in admin page** — runtime control of the Home Assistant URL and token at `/admin`. Changes are persisted in SQLite and take effect without a restart.
 - **Personalize** — light/dark/auto theme and a built-in demo mode to try the full UI without a Home Assistant connection.
 - **Secure by design** — a single server-side connection to Home Assistant; clients never hold your HA token.
 
