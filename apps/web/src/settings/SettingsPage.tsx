@@ -5,11 +5,13 @@ import {
   mdiCheckCircle, mdiSync, mdiAlertCircleOutline,
   mdiAnimationPlay, mdiHomeOutline, mdiStarOutline,
   mdiViewGridOutline, mdiMapMarkerRadiusOutline, mdiFlask,
-  mdiChevronRight, mdiServerNetwork,
+  mdiChevronRight, mdiServerNetwork, mdiAccountCircleOutline, mdiLogout,
+  mdiAccountMultipleOutline,
 } from '@mdi/js';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { useDemoStore } from '../demo/demoStore.js';
 import { useAuthStore } from '../auth/authStore.js';
+import { logout as logoutApi } from '../auth/authApi.js';
 import { useThemeStore, type ThemeChoice } from './theme.js';
 import { useMotionStore, type MotionPref } from './motionStore.js';
 import { Icon } from '../ui/Icon.js';
@@ -162,6 +164,55 @@ function StartupCard(): ReactElement {
   );
 }
 
+function AccountCard(): ReactElement {
+  const navigate = useNavigate();
+  const user = useAuthStore((s) => s.user);
+  const setStatus = useAuthStore((s) => s.setStatus);
+  if (!user) return <></>;
+  async function onLogout(): Promise<void> {
+    try { await logoutApi(); } catch { /* still log out locally */ }
+    setStatus('anonymous', null);
+    navigate('/login', { replace: true });
+  }
+  return (
+    <Card title="Account">
+      <div className="flex items-center gap-3">
+        <Icon path={mdiAccountCircleOutline} size={28} color="var(--color-muted)" />
+        <div className="flex flex-col">
+          <span className="text-[14.5px] font-semibold">{user.displayName}</span>
+          <span className="text-[12px] text-[var(--color-muted)]">
+            @{user.username} · {user.role === 'admin' ? 'Admin' : 'Member'}
+          </span>
+        </div>
+        <button
+          type="button"
+          onClick={onLogout}
+          className="ml-auto flex items-center gap-1.5 border border-[var(--color-border)] px-3 py-1.5 text-[12.5px] font-semibold text-[var(--color-muted)] hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          style={squircle(11)}
+        >
+          <Icon path={mdiLogout} size={14} />
+          Sign out
+        </button>
+      </div>
+      {user.role === 'admin' && (
+        <button
+          type="button"
+          onClick={() => navigate('/admin/users')}
+          className="mt-3 flex w-full items-center gap-3 border border-[var(--color-border)] px-3 py-2.5 text-left text-[var(--color-muted)] hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          style={squircle(13)}
+        >
+          <Icon path={mdiAccountMultipleOutline} size={20} />
+          <span className="flex-1">
+            <span className="block text-[13.5px] font-semibold">Users & invites</span>
+            <span className="block text-[12px] text-[var(--color-muted)]">Invite family members and manage roles</span>
+          </span>
+          <Icon path={mdiChevronRight} size={20} />
+        </button>
+      )}
+    </Card>
+  );
+}
+
 function latencyLabel(ms: number | null): { label: string; color: string } | null {
   if (ms === null) return null;
   if (ms < 100) return { label: 'Good', color: '#5fd08a' };
@@ -302,6 +353,7 @@ export function SettingsPage(): ReactElement {
         <h1 className="m-0 text-[26px] font-extrabold tracking-[-0.5px]">Settings</h1>
       </div>
       <div className="mt-5 flex flex-col gap-3.5">
+        <AccountCard />
         <ThemeCard />
         <MotionCard />
         <StartupCard />
