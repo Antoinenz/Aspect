@@ -1,5 +1,6 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import { AnimatePresence } from 'motion/react';
+import { useLocation } from 'react-router-dom';
 import { connectToServer } from './server-client/socket.js';
 import { useConnectionStore } from './store/connectionStore.js';
 import { useDemoStore } from './demo/demoStore.js';
@@ -20,21 +21,11 @@ export function App(): ReactElement {
   const haConnected = useConnectionStore((s) => s.haConnected);
   const demo = useDemoStore((s) => s.demo);
 
-  // Bypass the loading/error gates when the user explicitly navigates to the
-  // admin page via the URL hash. Without this, a fresh install (no HA URL/token
-  // configured) would render ErrorScreen forever — and the admin page is the
-  // very thing you need to fix that.
-  const [forceShell, setForceShell] = useState(
-    typeof window !== 'undefined' && window.location.hash.replace(/^#\/?/, '') === 'admin',
-  );
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    const onHash = (): void => {
-      setForceShell(window.location.hash.replace(/^#\/?/, '') === 'admin');
-    };
-    window.addEventListener('hashchange', onHash);
-    return () => window.removeEventListener('hashchange', onHash);
-  }, []);
+  // Bypass the loading/error gates when the user is on /admin. Without this,
+  // a fresh install (no HA URL/token configured) would render ErrorScreen
+  // forever — and the admin page is the very thing you need to fix that.
+  const location = useLocation();
+  const forceShell = location.pathname.startsWith('/admin');
 
   // Skip WebSocket in demo mode; reconnect immediately when demo is turned off.
   useEffect(() => {

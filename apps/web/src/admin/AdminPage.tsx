@@ -1,4 +1,5 @@
 import { type ReactElement, type ReactNode, useEffect, useState, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   mdiArrowLeft, mdiCheckCircle, mdiAlertCircleOutline, mdiSync,
   mdiServerNetwork, mdiKeyVariant, mdiShieldAlertOutline,
@@ -44,7 +45,9 @@ function Field({
 
 type Toast = { kind: 'success' | 'error' | 'info'; text: string } | null;
 
-export function AdminPage({ onBack }: { onBack: () => void }): ReactElement {
+export function AdminPage(): ReactElement {
+  const navigate = useNavigate();
+  const onBack = (): void => { navigate('/settings'); };
   const [settings, setSettings] = useState<AdminSettings | null>(null);
   const [haUrl, setHaUrl] = useState('');
   const [haToken, setHaToken] = useState('');

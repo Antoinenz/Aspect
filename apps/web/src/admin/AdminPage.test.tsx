@@ -1,6 +1,8 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter, useLocation } from 'react-router-dom';
+import type { ReactElement } from 'react';
 import { AdminPage } from './AdminPage.js';
 import type { AdminSettings } from './adminApi.js';
 
@@ -26,6 +28,20 @@ function mockFetchSequence(responses: Array<{ status?: number; body: unknown }>)
   });
 }
 
+function LocationProbe(): ReactElement {
+  const location = useLocation();
+  return <span data-testid="location">{location.pathname}</span>;
+}
+
+function renderAdmin(): ReturnType<typeof render> {
+  return render(
+    <MemoryRouter initialEntries={['/admin']}>
+      <AdminPage />
+      <LocationProbe />
+    </MemoryRouter>,
+  );
+}
+
 describe('AdminPage', () => {
   beforeEach(() => {
     // Silence unhandled confirm() prompts that don't matter to these tests.
@@ -38,7 +54,7 @@ describe('AdminPage', () => {
 
   it('shows status and effective URL after loading', async () => {
     mockFetchSequence([{ body: baseSettings }]);
-    render(<AdminPage onBack={() => {}} />);
+    renderAdmin();
     expect(await screen.findByText(/connected to home assistant/i)).toBeInTheDocument();
     expect(screen.getByText(/environment defaults/i)).toBeInTheDocument();
     expect(screen.getByDisplayValue('http://env-ha:8123')).toBeInTheDocument();
@@ -46,7 +62,7 @@ describe('AdminPage', () => {
 
   it('renders the security warning', async () => {
     mockFetchSequence([{ body: baseSettings }]);
-    render(<AdminPage onBack={() => {}} />);
+    renderAdmin();
     expect(await screen.findByText(/no authentication/i)).toBeInTheDocument();
   });
 
@@ -69,7 +85,7 @@ describe('AdminPage', () => {
     });
     global.fetch = fetchMock as unknown as typeof fetch;
 
-    render(<AdminPage onBack={() => {}} />);
+    renderAdmin();
     const urlField = await screen.findByDisplayValue('http://env-ha:8123');
     await userEvent.clear(urlField);
     await userEvent.type(urlField, 'http://new:8123');
@@ -95,7 +111,7 @@ describe('AdminPage', () => {
     });
     global.fetch = fetchMock as unknown as typeof fetch;
 
-    render(<AdminPage onBack={() => {}} />);
+    renderAdmin();
     await screen.findByDisplayValue('http://env-ha:8123');
     const tokenField = screen.getByPlaceholderText(/configured/i);
     await userEvent.type(tokenField, 'fresh-token');
@@ -118,7 +134,7 @@ describe('AdminPage', () => {
     });
     global.fetch = fetchMock as unknown as typeof fetch;
 
-    render(<AdminPage onBack={() => {}} />);
+    renderAdmin();
     await screen.findByDisplayValue('http://env-ha:8123');
     await userEvent.type(screen.getByPlaceholderText(/configured/i), 'tok');
     await userEvent.click(screen.getByRole('button', { name: /^test$/i }));
@@ -138,7 +154,7 @@ describe('AdminPage', () => {
     });
     global.fetch = fetchMock as unknown as typeof fetch;
 
-    render(<AdminPage onBack={() => {}} />);
+    renderAdmin();
     await screen.findByDisplayValue('http://env-ha:8123');
     await userEvent.type(screen.getByPlaceholderText(/configured/i), 'tok');
     await userEvent.click(screen.getByRole('button', { name: /^test$/i }));
@@ -152,7 +168,7 @@ describe('AdminPage', () => {
       effective: { url: 'http://override:8123', hasToken: true, source: 'db' },
     };
     mockFetchSequence([{ body: dbBase }]);
-    render(<AdminPage onBack={() => {}} />);
+    renderAdmin();
     expect(await screen.findByRole('button', { name: /revert to env defaults/i })).toBeInTheDocument();
   });
 
@@ -163,17 +179,16 @@ describe('AdminPage', () => {
       envHasUrl: false, envHasToken: false,
     };
     mockFetchSequence([{ body: noEnv }]);
-    render(<AdminPage onBack={() => {}} />);
+    renderAdmin();
     await screen.findByDisplayValue('http://override:8123');
     expect(screen.queryByRole('button', { name: /revert to env defaults/i })).not.toBeInTheDocument();
   });
 
-  it('invokes onBack when the back button is clicked', async () => {
+  it('navigates to /settings when the back button is clicked', async () => {
     mockFetchSequence([{ body: baseSettings }]);
-    const onBack = vi.fn();
-    render(<AdminPage onBack={onBack} />);
+    renderAdmin();
     await screen.findByDisplayValue('http://env-ha:8123');
     await userEvent.click(screen.getByRole('button', { name: /back to settings/i }));
-    expect(onBack).toHaveBeenCalledOnce();
+    expect(screen.getByTestId('location').textContent).toBe('/settings');
   });
 });

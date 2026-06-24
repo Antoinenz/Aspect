@@ -1,5 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen, act, waitFor } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import type { ReactElement } from 'react';
 import { App } from './App.js';
 import { useConnectionStore } from './store/connectionStore.js';
 
@@ -18,17 +20,25 @@ const base = {
   favorites: [],
 };
 
+function renderApp(initial = '/home'): ReactElement {
+  return render(
+    <MemoryRouter initialEntries={[initial]}>
+      <App />
+    </MemoryRouter>,
+  ) as unknown as ReactElement;
+}
+
 describe('App', () => {
   beforeEach(() => useConnectionStore.setState({ ...base }));
 
   it('shows a loading skeleton before the link is up', () => {
-    render(<App />);
+    renderApp();
     // LoadingShell renders skeleton bones while connecting
     expect(document.querySelector('.animate-pulse')).toBeInTheDocument();
   });
 
   it('hides the skeleton when fully connected', async () => {
-    render(<App />);
+    renderApp();
     act(() =>
       useConnectionStore.setState({
         ...base,
@@ -51,7 +61,7 @@ describe('App', () => {
         haConnected: true,
       }),
     );
-    render(<App />);
+    renderApp();
     await waitFor(() => {
       expect(screen.getAllByText('Home').length).toBeGreaterThan(0);
     });

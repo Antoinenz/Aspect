@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter, useLocation } from 'react-router-dom';
+import type { ReactElement } from 'react';
 import { AppShell } from './AppShell.js';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { useDemoStore } from '../demo/demoStore.js';
@@ -13,7 +15,21 @@ const base = {
   registry: [] as never[], favorites: [] as string[],
 };
 
-const withKitchen = () => useConnectionStore.setState({
+function LocationProbe(): ReactElement {
+  const location = useLocation();
+  return <span data-testid="location">{location.pathname}</span>;
+}
+
+function renderAt(path: string): ReturnType<typeof render> {
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <AppShell />
+      <LocationProbe />
+    </MemoryRouter>,
+  );
+}
+
+const withKitchen = (): void => useConnectionStore.setState({
   ...base,
   entities: { 'light.kitchen_lamp': e('light.kitchen_lamp') },
   areas: [{ areaId: 'kitchen', name: 'Kitchen' }],
@@ -22,33 +38,39 @@ const withKitchen = () => useConnectionStore.setState({
 
 describe('AppShell', () => {
   beforeEach(() => {
-    // Reset demo store so state leaked from other test files doesn't affect AppShell.
     useDemoStore.setState({ demo: false });
     useConnectionStore.setState({ ...base });
   });
 
   it('renders the nav with Home and Settings', () => {
-    render(<AppShell />);
+    renderAt('/home');
     expect(screen.getAllByText('Home').length).toBeGreaterThan(0);
     expect(screen.getAllByText('Settings').length).toBeGreaterThan(0);
   });
 
-  it('navigates to Rooms overview, into a room, opens a tile, and back', async () => {
-    render(<AppShell />);
+  it('navigates from Rooms overview into a room (URL becomes /rooms/:areaId), opens a tile, and back', async () => {
+    renderAt('/rooms');
     // AppShell's useEffect clears the store on mount when demo=false,
     // so set kitchen data after the initial effects have flushed.
     act(withKitchen);
-    await userEvent.click(screen.getAllByText('Rooms')[0]!);
-    // Overview shows the room card
     await userEvent.click(await screen.findByText('Kitchen'));
-    // Room view shows the tile; open it
+    expect(screen.getByTestId('location').textContent).toBe('/rooms/kitchen');
     await userEvent.click(await screen.findByRole('button', { name: 'Kitchen Lamp' }));
     expect(await screen.findByRole('dialog', { name: /kitchen lamp/i })).toBeInTheDocument();
   });
 
   it('shows the Map empty state when no one is located', async () => {
-    render(<AppShell />);
-    await userEvent.click(screen.getAllByText('Map')[0]!);
+    renderAt('/map');
     expect(await screen.findByText(/no one with location sharing yet/i)).toBeInTheDocument();
+  });
+
+  it('renders the AdminPage when navigated to /admin', async () => {
+    renderAt('/admin');
+    expect(await screen.findByText(/server administration/i)).toBeInTheDocument();
+  });
+
+  it('redirects unknown paths to /home', () => {
+    renderAt('/no-such-page');
+    expect(screen.getByTestId('location').textContent).toBe('/home');
   });
 });

@@ -1,4 +1,5 @@
 import { type ReactElement, type ReactNode, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   mdiWeatherSunny, mdiWeatherNight, mdiThemeLightDark,
   mdiCheckCircle, mdiSync, mdiAlertCircleOutline,
@@ -160,7 +161,8 @@ function StartupCard(): ReactElement {
   );
 }
 
-function ConnectionCard({ onOpenAdmin }: { onOpenAdmin: () => void }): ReactElement {
+function ConnectionCard(): ReactElement {
+  const navigate = useNavigate();
   const link = useConnectionStore((s) => s.link);
   const haConnected = useConnectionStore((s) => s.haConnected);
 
@@ -190,7 +192,7 @@ function ConnectionCard({ onOpenAdmin }: { onOpenAdmin: () => void }): ReactElem
         </div>
         <button
           type="button"
-          onClick={onOpenAdmin}
+          onClick={() => navigate('/admin')}
           className="mt-1 flex w-full items-center gap-3 border border-[var(--color-border)] px-3 py-2.5 text-left text-[var(--color-muted)] hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
           style={squircle(13)}
         >
@@ -265,7 +267,7 @@ function AboutCard(): ReactElement {
   );
 }
 
-export function SettingsPage({ onOpenAdmin }: { onOpenAdmin: () => void }): ReactElement {
+export function SettingsPage(): ReactElement {
   return (
     <div>
       <div className="tab-header">
@@ -275,7 +277,7 @@ export function SettingsPage({ onOpenAdmin }: { onOpenAdmin: () => void }): Reac
         <ThemeCard />
         <MotionCard />
         <StartupCard />
-        <ConnectionCard onOpenAdmin={onOpenAdmin} />
+        <ConnectionCard />
         <DeveloperCard />
         <AboutCard />
       </div>

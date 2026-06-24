@@ -1,11 +1,11 @@
-import { useMemo, useState, useCallback, useRef, useEffect, useLayoutEffect, type ReactElement } from 'react';
+import { useMemo, useRef, useEffect, useLayoutEffect, useState, type ReactElement } from 'react';
+import { Routes, Route, Navigate, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { useDemoStore } from '../demo/demoStore.js';
 import { DEMO_ENTITIES, DEMO_AREAS, DEMO_DEVICES, DEMO_REGISTRY, DEMO_FAVORITES } from '../demo/demoData.js';
 import { Nav } from '../nav/Nav.js';
-import type { Section } from '../nav/navItems.js';
-import { ALL_DESTINATIONS } from '../nav/navItems.js';
-import { buildRooms } from './rooms.js';
+import { pageRank } from '../nav/navItems.js';
+import { buildRooms, type Room } from './rooms.js';
 import { SummaryTab } from './SummaryTab.js';
 import { QuickAccessTab } from './QuickAccessTab.js';
 import { RoomsOverview } from './RoomsGrid.js';
@@ -15,12 +15,36 @@ import { SettingsPage } from '../settings/SettingsPage.js';
 import { AdminPage } from '../admin/AdminPage.js';
 import { MapPage } from '../map/MapPage.js';
 
-type NavDir = 'forward' | 'backward';
+/**
+ * Resolve the user's preferred startup path from localStorage. The picker in
+ * Settings still writes the old Section ID, so map it here.
+ */
+function startupPath(): string {
+  const saved = localStorage.getItem('aspect-startup-section');
+  switch (saved) {
+    case 'favorites': return '/favourites';
+    case 'rooms': return '/rooms';
+    case 'map': return '/map';
+    case 'home':
+    default: return '/home';
+  }
+}
 
-function dirBetween(from: Section, to: Section): NavDir {
-  const fi = ALL_DESTINATIONS.findIndex((d) => d.id === from);
-  const ti = ALL_DESTINATIONS.findIndex((d) => d.id === to);
-  return ti >= fi ? 'forward' : 'backward';
+/** Inner route for /rooms/:areaId — looks the room up by URL param. */
+function RoomRoute({ rooms, onSelect }: {
+  rooms: Room[]; onSelect: (id: string) => void;
+}): ReactElement {
+  const { areaId } = useParams<{ areaId: string }>();
+  const navigate = useNavigate();
+  const room = rooms.find((r) => r.areaId === areaId) ?? null;
+  if (!room) return <Navigate to="/rooms" replace />;
+  return (
+    <RoomView
+      room={room}
+      onBack={() => navigate('/rooms')}
+      onSelect={(re) => onSelect(re.entity.entityId)}
+    />
+  );
 }
 
 export function AppShell(): ReactElement {
@@ -29,6 +53,8 @@ export function AppShell(): ReactElement {
   const devices = useConnectionStore((s) => s.devices);
   const registry = useConnectionStore((s) => s.registry);
   const demo = useDemoStore((s) => s.demo);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   // Track previous demo value so we only reset the store when transitioning
   // FROM demo mode. Running the reset on every initial mount (demo=false) would
@@ -69,108 +95,82 @@ export function AppShell(): ReactElement {
     }
   }, [demo]);
 
-  const rooms = useMemo(() => buildRooms(entities, areas, devices, registry), [entities, areas, devices, registry]);
+  const rooms = useMemo(
+    () => buildRooms(entities, areas, devices, registry),
+    [entities, areas, devices, registry],
+  );
 
-  const [section, setSection] = useState<Section>(() => {
-    // Direct-link support: hitting the SPA at #/admin (or #admin) drops the
-    // user straight into the admin page. This keeps the README's reference
-    // to "/admin" honest without us pulling in a router.
-    if (typeof window !== 'undefined') {
-      const hash = window.location.hash.replace(/^#\/?/, '');
-      if (hash === 'admin') return 'admin';
-    }
-    const saved = localStorage.getItem('aspect-startup-section') as Section | null;
-    const valid: Section[] = ['home', 'rooms', 'favorites', 'map', 'settings'];
-    return saved && valid.includes(saved) ? saved : 'home';
-  });
-  const [roomId, setRoomId] = useState<string | null>(null);
+  // Slide direction is computed from the previous-vs-current page rank so
+  // we keep the existing forward/backward animations exactly. The ref holds
+  // the prior pathname's rank across renders.
+  const prevRankRef = useRef(pageRank(location.pathname));
+  const [navDir, setNavDir] = useState<'forward' | 'backward'>('forward');
+  useEffect(() => {
+    const next = pageRank(location.pathname);
+    setNavDir(next >= prevRankRef.current ? 'forward' : 'backward');
+    prevRankRef.current = next;
+  }, [location.pathname]);
+
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [navDir, setNavDir] = useState<NavDir>('forward');
+  const closeSheet = (): void => setSelectedId(null);
+  const openEntity = (id: string): void => setSelectedId(id);
+
   const mainRef = useRef<HTMLElement>(null);
 
-  // Ref so navigate callback always reads the latest section without being recreated.
-  const sectionRef = useRef(section);
-  sectionRef.current = section;
-
-  const navigate = useCallback((s: Section) => {
-    setNavDir(dirBetween(sectionRef.current, s));
-    setSection(s);
-    setRoomId(null);
+  // Scroll to top whenever the route changes (matches old per-navigate scroll).
+  useEffect(() => {
     if (mainRef.current && typeof mainRef.current.scrollTo === 'function') {
       mainRef.current.scrollTo({ top: 0 });
     }
-  }, []);
-
-  const closeSheet = useCallback(() => setSelectedId(null), []);
-  const openEntity = useCallback((id: string) => setSelectedId(id), []);
-
-  const openRoom = useCallback((areaId: string) => {
-    setNavDir('forward');
-    setRoomId(areaId);
-  }, []);
-
-  const closeRoom = useCallback(() => {
-    setNavDir('backward');
-    setRoomId(null);
-  }, []);
-
-  const activeRoom = rooms.find((r) => r.areaId === roomId) ?? null;
-
-  const enterClass = navDir === 'backward' ? 'section-enter-backward' : 'section-enter-forward';
+  }, [location.pathname]);
 
   // Expose <main>'s rendered width as a CSS var so .tab-header can bleed to its
   // edges even when content is centered in a narrower max-w column.
   useLayoutEffect(() => {
     const el = mainRef.current;
     if (!el) return;
-    const update = () => el.style.setProperty('--main-w', `${el.offsetWidth}px`);
+    const update = (): void => el.style.setProperty('--main-w', `${el.offsetWidth}px`);
     update();
     const ro = new ResizeObserver(update);
     ro.observe(el);
     return () => ro.disconnect();
   }, []);
 
+  const enterClass = navDir === 'backward' ? 'section-enter-backward' : 'section-enter-forward';
+
   return (
     <div className="flex h-dvh [overflow:clip]">
-      <Nav section={section} onNavigate={navigate} />
+      <Nav />
       <main ref={mainRef} className="flex-1 overflow-y-auto [overflow-x:clip] [scrollbar-gutter:stable] px-5 pb-24 md:px-8 md:pb-10">
         <div className="mx-auto max-w-[1100px]">
-          <div key={section + (roomId ?? '')} className={enterClass}>
-            {section === 'home' && <SummaryTab rooms={rooms} onSelect={openEntity} />}
-            {section === 'favorites' && (
-              <QuickAccessTab
-                rooms={rooms}
-                onSelect={openEntity}
-                onSelectRoom={(areaId) => {
-                  setNavDir(dirBetween(sectionRef.current, 'rooms'));
-                  setSection('rooms');
-                  setRoomId(areaId);
-                }}
+          <div key={location.pathname} className={enterClass}>
+            <Routes>
+              <Route path="/" element={<Navigate to={startupPath()} replace />} />
+              <Route path="/home" element={<SummaryTab rooms={rooms} onSelect={openEntity} />} />
+              <Route
+                path="/favourites"
+                element={
+                  <QuickAccessTab
+                    rooms={rooms}
+                    onSelect={openEntity}
+                    onSelectRoom={(areaId) => navigate(`/rooms/${areaId}`)}
+                  />
+                }
               />
-            )}
-            {section === 'rooms' && (
-              activeRoom
-                ? <RoomView room={activeRoom} onBack={closeRoom} onSelect={(re) => openEntity(re.entity.entityId)} />
-                : <RoomsOverview rooms={rooms} onOpen={openRoom} />
-            )}
-            {section === 'map' && <MapPage />}
-            {section === 'settings' && (
-              <SettingsPage
-                onOpenAdmin={() => {
-                  // Sub-nav: always feels forward going in.
-                  setNavDir('forward');
-                  setSection('admin');
-                }}
+              <Route
+                path="/rooms"
+                element={<RoomsOverview rooms={rooms} onOpen={(areaId) => navigate(`/rooms/${areaId}`)} />}
               />
-            )}
-            {section === 'admin' && (
-              <AdminPage
-                onBack={() => {
-                  setNavDir('backward');
-                  setSection('settings');
-                }}
+              <Route
+                path="/rooms/:areaId"
+                element={<RoomRoute rooms={rooms} onSelect={openEntity} />}
               />
-            )}
+              <Route path="/map" element={<MapPage />} />
+              <Route path="/settings" element={<SettingsPage />} />
+              <Route path="/admin" element={<AdminPage />} />
+              {/* Unknown routes drop the user on /home. */}
+              <Route path="*" element={<Navigate to="/home" replace />} />
+            </Routes>
           </div>
         </div>
       </main>

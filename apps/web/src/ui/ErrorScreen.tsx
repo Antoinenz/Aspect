@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react';
 import { motion } from 'motion/react';
+import { useNavigate } from 'react-router-dom';
 import { mdiLanDisconnect, mdiHomeOff, mdiFlask, mdiServerNetwork } from '@mdi/js';
 import { Icon } from './Icon.js';
 import { useDemoStore } from '../demo/demoStore.js';
@@ -21,6 +22,7 @@ const item = {
 
 export function ErrorScreen({ kind }: { kind: 'server' | 'ha' }): ReactElement {
   const setDemo = useDemoStore((s) => s.setDemo);
+  const navigate = useNavigate();
   const isServer = kind === 'server';
 
   return (
@@ -66,9 +68,7 @@ export function ErrorScreen({ kind }: { kind: 'server' | 'ha' }): ReactElement {
         >
           <button
             type="button"
-            onClick={() => {
-              window.location.hash = 'admin';
-            }}
+            onClick={() => navigate('/admin')}
             className="flex items-center gap-2 border border-white/15 bg-white/[0.06] px-5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-white/[0.1] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
             style={{ borderRadius: 14, cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties}
           >
