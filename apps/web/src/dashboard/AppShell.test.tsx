@@ -6,6 +6,7 @@ import type { ReactElement } from 'react';
 import { AppShell } from './AppShell.js';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { useDemoStore } from '../demo/demoStore.js';
+import { useAuthStore } from '../auth/authStore.js';
 import type { EntityState } from '@aspect/shared';
 
 const e = (id: string, state = 'on'): EntityState => ({ entityId: id, state, attributes: {}, lastChanged: 't', lastUpdated: 't' });
@@ -40,6 +41,11 @@ describe('AppShell', () => {
   beforeEach(() => {
     useDemoStore.setState({ demo: false });
     useConnectionStore.setState({ ...base });
+    // Seed an authenticated admin so RequireAuth lets /admin through.
+    useAuthStore.setState({
+      status: 'authenticated', hasUsers: true,
+      user: { id: 'u1', username: 'admin', displayName: 'Admin', role: 'admin' },
+    });
   });
 
   it('renders the nav with Home and Settings', () => {

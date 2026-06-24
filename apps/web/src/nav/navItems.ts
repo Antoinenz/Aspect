@@ -43,7 +43,8 @@ const PAGE_RANKS: { match: (p: string) => boolean; rank: number }[] = [
   { match: (p) => p.startsWith('/rooms/'), rank: 2.5 },
   { match: (p) => p.startsWith('/map'), rank: 3 },
   { match: (p) => p === '/settings', rank: 4 },
-  { match: (p) => p.startsWith('/admin'), rank: 4.5 },
+  { match: (p) => p === '/admin', rank: 4.5 },
+  { match: (p) => p.startsWith('/admin/'), rank: 4.75 },
 ];
 
 export function pageRank(pathname: string): number {

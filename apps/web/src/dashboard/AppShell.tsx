@@ -13,6 +13,8 @@ import { RoomView } from './RoomView.js';
 import { EntityDetailSheet } from './EntityDetailSheet.js';
 import { SettingsPage } from '../settings/SettingsPage.js';
 import { AdminPage } from '../admin/AdminPage.js';
+import { UsersAdminPage } from '../admin/UsersAdminPage.js';
+import { RequireAuth } from '../auth/RequireAuth.js';
 import { MapPage } from '../map/MapPage.js';
 
 /**
@@ -167,7 +169,8 @@ export function AppShell(): ReactElement {
               />
               <Route path="/map" element={<MapPage />} />
               <Route path="/settings" element={<SettingsPage />} />
-              <Route path="/admin" element={<AdminPage />} />
+              <Route path="/admin" element={<RequireAuth role="admin"><AdminPage /></RequireAuth>} />
+              <Route path="/admin/users" element={<RequireAuth role="admin"><UsersAdminPage /></RequireAuth>} />
               {/* Unknown routes drop the user on /home. */}
               <Route path="*" element={<Navigate to="/home" replace />} />
             </Routes>

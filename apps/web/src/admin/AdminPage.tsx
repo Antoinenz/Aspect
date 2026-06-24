@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import {
   mdiArrowLeft, mdiCheckCircle, mdiAlertCircleOutline, mdiSync,
   mdiServerNetwork, mdiKeyVariant, mdiShieldAlertOutline,
+  mdiAccountMultipleOutline, mdiChevronRight,
 } from '@mdi/js';
 import { Icon } from '../ui/Icon.js';
 import { SQUIRCLE } from '../ui/tokens.js';
@@ -161,17 +162,32 @@ export function AdminPage(): ReactElement {
       </div>
 
       <div className="mt-5 flex flex-col gap-3.5">
-        {/* Security warning */}
+        {/* Admin notice */}
         <div
           className="flex items-start gap-3 border border-[#ffb86b]/30 bg-[#ffb86b]/10 p-3.5 text-[13px] text-[var(--color-text)]"
           style={squircle(14)}
         >
           <Icon path={mdiShieldAlertOutline} size={20} color="#ffb86b" />
           <span>
-            <strong>No authentication.</strong> Anyone who can reach this server can change these
-            settings. Restrict access at the network layer (Tailscale, reverse proxy, firewall).
+            These settings affect <strong>everyone</strong> using this Aspect server. Saving a new
+            connection reconnects every signed-in family member.
           </span>
         </div>
+
+        {/* Users & invites */}
+        <button
+          type="button"
+          onClick={() => navigate('/admin/users')}
+          className="flex w-full items-center gap-3 border border-[var(--color-border)] bg-[var(--color-surface)] p-4 text-left backdrop-blur-[var(--blur-frost)] hover:bg-white/5 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+          style={squircle(18)}
+        >
+          <Icon path={mdiAccountMultipleOutline} size={22} color="var(--color-muted)" />
+          <span className="flex flex-1 flex-col">
+            <span className="text-[15px] font-semibold">Users & invites</span>
+            <span className="text-[12.5px] text-[var(--color-muted)]">Invite family members and manage roles</span>
+          </span>
+          <Icon path={mdiChevronRight} size={20} color="var(--color-muted)" />
+        </button>
 
         {/* Status */}
         <Card title="Status">

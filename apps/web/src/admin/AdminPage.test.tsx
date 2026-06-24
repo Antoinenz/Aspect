@@ -60,10 +60,10 @@ describe('AdminPage', () => {
     expect(screen.getByDisplayValue('http://env-ha:8123')).toBeInTheDocument();
   });
 
-  it('renders the security warning', async () => {
+  it('renders the multi-user warning', async () => {
     mockFetchSequence([{ body: baseSettings }]);
     renderAdmin();
-    expect(await screen.findByText(/no authentication/i)).toBeInTheDocument();
+    expect(await screen.findByText(/affect/i)).toBeInTheDocument();
   });
 
   it('PUTs settings without haToken when the field is left empty', async () => {
