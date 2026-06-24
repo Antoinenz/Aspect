@@ -5,6 +5,7 @@ import fastifyCookie from '@fastify/cookie';
 import { healthRoutes } from './routes/health.js';
 import { adminRoutes } from './routes/admin.js';
 import { authRoutes } from './routes/auth.js';
+import { userManagementRoutes } from './routes/users.js';
 import { clientChannel } from './ws/clientChannel.js';
 import { registerStatic } from './static.js';
 import { HaCache } from './cache/haCache.js';
@@ -76,6 +77,7 @@ export async function buildApp(
   app.decorate('haSupervisor', supervisor);
 
   await app.register(adminRoutes);
+  await app.register(userManagementRoutes);
   await registerStatic(app, opts.webDir ?? null);
   return app;
 }
