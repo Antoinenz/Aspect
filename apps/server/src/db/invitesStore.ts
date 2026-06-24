@@ -103,7 +103,7 @@ function toInvite(row: Record<string, string | null>): InviteRow {
     createdBy: row.created_by!,
     createdAt: row.created_at!,
     expiresAt: row.expires_at!,
-    usedAt: row.used_at,
-    usedBy: row.used_by,
+    usedAt: row.used_at ?? null,
+    usedBy: row.used_by ?? null,
   };
 }

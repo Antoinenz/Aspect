@@ -3,6 +3,10 @@ import { buildApp } from './app.js';
 import type { AspectConfig } from './config.js';
 import { FavoritesStore } from './db/favoritesStore.js';
 import { ServerSettingsStore } from './db/serverSettingsStore.js';
+import { UsersStore } from './db/usersStore.js';
+import { SessionsStore } from './db/sessionsStore.js';
+import { InvitesStore } from './db/invitesStore.js';
+import { loadOrCreateSecret } from './auth/secret.js';
 
 /**
  * Builds the app, starts listening, and (if configured) connects to Home
@@ -16,10 +20,26 @@ import { ServerSettingsStore } from './db/serverSettingsStore.js';
 export async function startServer(
   config: AspectConfig,
 ): Promise<FastifyInstance> {
+  const cookieSecret = loadOrCreateSecret(process.env, config.dbPath);
+  const users = new UsersStore(config.dbPath);
+  const sessions = new SessionsStore(config.dbPath);
+  const invites = new InvitesStore(config.dbPath);
+  // Best-effort housekeeping at boot — drops expired session rows.
+  try { sessions.deleteExpired(); } catch { /* never fatal */ }
+
+  if (users.count() === 0) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      'No users registered yet. The first /api/auth/signup will be promoted to admin — make sure access is restricted (Tailscale, VPN, reverse proxy).',
+    );
+  }
+
   const app = await buildApp({
     webDir: config.webDir,
     favorites: new FavoritesStore(config.dbPath),
     serverSettings: new ServerSettingsStore(config.dbPath),
+    users, sessions, invites,
+    cookieSecret,
     envHa: { url: config.haUrl, token: config.haToken },
   });
 
