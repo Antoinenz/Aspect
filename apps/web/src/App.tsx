@@ -1,9 +1,14 @@
 import { useEffect, useState, type ReactElement } from 'react';
 import { AnimatePresence } from 'motion/react';
-import { useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { connectToServer } from './server-client/socket.js';
 import { useConnectionStore } from './store/connectionStore.js';
 import { useDemoStore } from './demo/demoStore.js';
+import { useAuthStore } from './auth/authStore.js';
+import { useAuthBootstrap } from './auth/useAuthBootstrap.js';
+import { RequireAuth } from './auth/RequireAuth.js';
+import { LoginPage } from './auth/LoginPage.js';
+import { SignupPage } from './auth/SignupPage.js';
 import { AppShell } from './dashboard/AppShell.js';
 import { ErrorScreen } from './ui/ErrorScreen.js';
 import { LoadingShell } from './ui/LoadingShell.js';
@@ -15,27 +20,28 @@ const SERVER_ERROR_DELAY_MS = 2000;
 // assume HA is unreachable rather than staying on loading forever.
 const STATUS_TIMEOUT_MS = 4000;
 
-export function App(): ReactElement {
+function MainShell(): ReactElement {
   const link = useConnectionStore((s) => s.link);
   const serverStatus = useConnectionStore((s) => s.serverStatus);
   const haConnected = useConnectionStore((s) => s.haConnected);
   const demo = useDemoStore((s) => s.demo);
+  const authStatus = useAuthStore((s) => s.status);
+  const location = useLocation();
 
   // Bypass the loading/error gates when the user is on /admin. Without this,
   // a fresh install (no HA URL/token configured) would render ErrorScreen
   // forever — and the admin page is the very thing you need to fix that.
-  const location = useLocation();
   const forceShell = location.pathname.startsWith('/admin');
 
-  // Skip WebSocket in demo mode; reconnect immediately when demo is turned off.
+  // Skip WebSocket in demo mode; connect only once authenticated. Logging
+  // out triggers a disconnect via the cleanup return.
   useEffect(() => {
     if (demo) return;
+    if (authStatus !== 'authenticated') return;
     return connectToServer();
-  }, [demo]);
+  }, [demo, authStatus]);
 
   // HA is offline: server reachable but HA is not.
-  // Guard on serverStatus !== null so we wait for the first status message
-  // before evaluating — avoids a false-positive before the server responds.
   const haOffline = !demo && link === 'connected' && serverStatus !== null && !haConnected;
 
   // Safety valve: if we're connected but haven't received any status message
@@ -61,8 +67,6 @@ export function App(): ReactElement {
 
   const rawShowError = haOffline || (!demo && statusTimedOut) || (serverDown && serverTimedOut);
   const errorKind = (haOffline || (!demo && statusTimedOut)) ? 'ha' : 'server';
-  // forceShell only bypasses the HA-offline case — the server-down case is
-  // genuinely unrecoverable from the UI (the server isn't running).
   const showError = rawShowError && !(forceShell && errorKind === 'ha');
   const isLoading = !demo && !showError && !haConnected && !forceShell;
 
@@ -78,5 +82,24 @@ export function App(): ReactElement {
         </div>
       )}
     </AnimatePresence>
+  );
+}
+
+export function App(): ReactElement {
+  useAuthBootstrap();
+
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signup" element={<SignupPage />} />
+      <Route
+        path="/*"
+        element={
+          <RequireAuth>
+            <MainShell />
+          </RequireAuth>
+        }
+      />
+    </Routes>
   );
 }
