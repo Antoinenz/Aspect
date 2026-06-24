@@ -162,12 +162,21 @@ function StartupCard(): ReactElement {
   );
 }
 
+function latencyLabel(ms: number | null): { label: string; color: string } | null {
+  if (ms === null) return null;
+  if (ms < 100) return { label: 'Good', color: '#5fd08a' };
+  if (ms < 400) return { label: 'OK', color: '#ffd27d' };
+  return { label: 'Poor', color: 'var(--color-danger)' };
+}
+
 function ConnectionCard(): ReactElement {
   const navigate = useNavigate();
   const link = useConnectionStore((s) => s.link);
   const haConnected = useConnectionStore((s) => s.haConnected);
+  const pingMs = useConnectionStore((s) => s.pingMs);
   const demo = useDemoStore((s) => s.demo);
   const isAdmin = useAuthStore((s) => s.user?.role === 'admin');
+  const latency = !demo && haConnected ? latencyLabel(pingMs) : null;
 
   let icon = mdiAlertCircleOutline;
   let color = 'var(--color-danger)';
@@ -196,6 +205,16 @@ function ConnectionCard(): ReactElement {
         <div className="flex items-center gap-2.5">
           <Icon path={icon} size={20} color={color} />
           <span className="text-[15px] font-semibold">{text}</span>
+          {latency && (
+            <span
+              className="ml-auto flex items-center gap-1.5 border border-[var(--color-border)] px-2 py-0.5 text-[11.5px] font-bold uppercase tracking-[0.4px]"
+              style={{ ...squircle(8), color: latency.color }}
+              title={pingMs !== null ? `${Math.round(pingMs)} ms round-trip` : undefined}
+            >
+              <span className="inline-block h-1.5 w-1.5 rounded-full" style={{ background: latency.color }} />
+              {latency.label}
+            </span>
+          )}
         </div>
         {isAdmin && (
           <button

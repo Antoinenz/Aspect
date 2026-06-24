@@ -1,5 +1,6 @@
 import { isServerToClientMessage } from '@aspect/shared';
 import { useConnectionStore } from '../store/connectionStore.js';
+import { recordPong } from './socket.js';
 
 /**
  * Parses a raw socket payload and applies it to the store. Pure with respect
@@ -36,6 +37,9 @@ export function handleRawMessage(raw: string): void {
       return;
     case 'favorites':
       store.applyFavorites(parsed.entityIds);
+      return;
+    case 'pong':
+      recordPong(parsed.nonce);
       return;
   }
 }

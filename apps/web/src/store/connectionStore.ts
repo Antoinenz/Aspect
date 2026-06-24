@@ -14,11 +14,15 @@ interface ConnectionState {
   link: LinkState;
   serverStatus: ServerStatus | null;
   haConnected: boolean;
+  /** Most recent round-trip time in ms (browser → server → browser), or null
+   *  if no probe has completed since (re)connect. */
+  pingMs: number | null;
   entities: Record<string, EntityState>;
   areas: Area[];
   devices: Device[];
   registry: RegistryEntry[];
   setLink: (link: LinkState) => void;
+  setPingMs: (ms: number | null) => void;
   applyStatus: (status: ServerStatus, haConnected: boolean) => void;
   applySnapshot: (snapshot: {
     entities: EntityState[];
@@ -48,12 +52,14 @@ export const useConnectionStore = create<ConnectionState>((set) => ({
   link: 'disconnected',
   serverStatus: null,
   haConnected: false,
+  pingMs: null,
   entities: {},
   areas: [],
   devices: [],
   registry: [],
   favorites: [],
   setLink: (link) => set({ link }),
+  setPingMs: (pingMs) => set({ pingMs }),
   applyFavorites: (favorites) => set({ favorites }),
   applyStatus: (serverStatus, haConnected) => set({ serverStatus, haConnected }),
   applySnapshot: (snapshot) =>

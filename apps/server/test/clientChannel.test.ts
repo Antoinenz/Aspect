@@ -141,3 +141,16 @@ describe('ClientHub favorites', () => {
     store.close();
   });
 });
+
+describe('ClientHub ping', () => {
+  it('replies to a ping with a pong echoing the nonce', () => {
+    const hub = new ClientHub(new HaCache(), new FavoritesStore(':memory:'));
+    const sent: string[] = [];
+    const fake = { readyState: 1, OPEN: 1, send: (s: string) => sent.push(s), on: () => {} } as unknown as import('@fastify/websocket').WebSocket;
+    hub.handleClientMessage(JSON.stringify({ type: 'ping', nonce: 42 }), fake);
+    const reply = JSON.parse(sent[0]!);
+    expect(reply.type).toBe('pong');
+    expect(reply.nonce).toBe(42);
+    expect(typeof reply.ts).toBe('number');
+  });
+});
