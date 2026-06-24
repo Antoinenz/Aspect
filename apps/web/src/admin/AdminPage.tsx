@@ -6,11 +6,37 @@ import {
   mdiAccountMultipleOutline, mdiChevronRight,
 } from '@mdi/js';
 import { Icon } from '../ui/Icon.js';
+import { LoadingShell } from '../ui/LoadingShell.js';
 import { SQUIRCLE } from '../ui/tokens.js';
 import {
   getAdminSettings, saveAdminSettings, resetAdminSettings, testAdminConnection,
   type AdminSettings,
 } from './adminApi.js';
+
+const SAVE_VERIFY_TIMEOUT_MS = 15_000;
+const SAVE_POLL_INTERVAL_MS = 1_000;
+
+/**
+ * After PUT /api/admin/settings returns, the supervisor reconnects in the
+ * background. Poll status until either:
+ *   - haConnected becomes true (success → redirect to /home), or
+ *   - lastError appears, or
+ *   - the deadline elapses (treat as failure).
+ */
+async function pollUntilConnected(): Promise<{ ok: boolean; error?: string }> {
+  const deadline = Date.now() + SAVE_VERIFY_TIMEOUT_MS;
+  while (Date.now() < deadline) {
+    await new Promise((r) => setTimeout(r, SAVE_POLL_INTERVAL_MS));
+    try {
+      const s = await getAdminSettings();
+      if (s.haConnected) return { ok: true };
+      if (s.lastError) return { ok: false, error: s.lastError };
+    } catch (err) {
+      return { ok: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+  return { ok: false, error: 'Timed out waiting for Home Assistant to come online.' };
+}
 
 const squircle = (radius: number): React.CSSProperties =>
   ({ borderRadius: `${radius}px`, cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties);
@@ -56,6 +82,10 @@ export function AdminPage(): ReactElement {
   const [busy, setBusy] = useState<'idle' | 'saving' | 'testing' | 'resetting'>('idle');
   const [toast, setToast] = useState<Toast>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  // When `verifying` is set we render the wireframe loading screen until the
+  // supervisor reports back: success → redirect /home, failure → land back
+  // here with the error pinned to the form.
+  const [verifying, setVerifying] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -85,13 +115,29 @@ export function AdminPage(): ReactElement {
     try {
       const payload: { haUrl: string; haToken?: string } = { haUrl: haUrl.trim() };
       if (haToken.trim() !== '') payload.haToken = haToken.trim();
-      const s = await saveAdminSettings(payload);
-      setSettings(s);
+      const initial = await saveAdminSettings(payload);
       setHaToken('');
-      setToast({ kind: 'success', text: 'Saved. Reconnecting to Home Assistant…' });
-      // Poll once after a short delay so the user sees the new haConnected state.
-      setTimeout(() => { void refresh(); }, 1500);
+      // Sometimes the supervisor manages to reconnect before the response
+      // even returns — skip the loading screen in that happy case.
+      if (initial.haConnected) {
+        navigate('/home', { replace: true });
+        return;
+      }
+      // Otherwise show the wireframe loading screen and poll the supervisor
+      // until it reports success or a clear error.
+      setVerifying(true);
+      const result = await pollUntilConnected();
+      setVerifying(false);
+      if (result.ok) {
+        navigate('/home', { replace: true });
+        return;
+      }
+      // Failure: refresh local state so the form reflects whatever the
+      // server now considers current, and pin the error to the form.
+      await refresh();
+      setToast({ kind: 'error', text: result.error ?? 'Reconnect failed.' });
     } catch (err) {
+      setVerifying(false);
       setToast({ kind: 'error', text: err instanceof Error ? err.message : String(err) });
     } finally {
       setBusy('idle');
@@ -136,6 +182,11 @@ export function AdminPage(): ReactElement {
       setBusy('idle');
     }
   }
+
+  // The user has saved and we're waiting for the supervisor to come back.
+  // Render the same wireframe loading screen the app uses elsewhere so the
+  // experience is consistent during reconnect.
+  if (verifying) return <LoadingShell />;
 
   const status = settings;
 
