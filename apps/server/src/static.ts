@@ -14,7 +14,14 @@ export async function registerStatic(
   if (!webDir || !existsSync(webDir)) return;
   await app.register(fastifyStatic, { root: path.resolve(webDir) });
   app.setNotFoundHandler((req, reply) => {
-    if (req.url === '/ws' || req.url.startsWith('/health')) {
+    // Anything that's clearly an API/transport route must 404 cleanly rather
+    // than be shadowed by index.html. Otherwise typos in admin calls and
+    // probing tools see a 200 with the SPA shell and misread it as success.
+    if (
+      req.url === '/ws' ||
+      req.url.startsWith('/health') ||
+      req.url.startsWith('/api/')
+    ) {
       reply.code(404).send({ error: 'not found' });
       return;
     }
