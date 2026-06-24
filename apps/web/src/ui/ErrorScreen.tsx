@@ -1,7 +1,8 @@
 import type { ReactElement } from 'react';
 import { motion } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
-import { mdiLanDisconnect, mdiHomeOff, mdiFlask, mdiServerNetwork } from '@mdi/js';
+import { mdiLanDisconnect, mdiHomeOff, mdiFlask, mdiServerNetwork, mdiHomeOutline } from '@mdi/js';
+import { useAuthStore } from '../auth/authStore.js';
 import { Icon } from './Icon.js';
 import { useDemoStore } from '../demo/demoStore.js';
 import { SQUIRCLE } from './tokens.js';
@@ -23,6 +24,7 @@ const item = {
 export function ErrorScreen({ kind }: { kind: 'server' | 'ha' }): ReactElement {
   const setDemo = useDemoStore((s) => s.setDemo);
   const navigate = useNavigate();
+  const isAdmin = useAuthStore((s) => s.user?.role === 'admin');
   const isServer = kind === 'server';
 
   return (
@@ -61,20 +63,31 @@ export function ErrorScreen({ kind }: { kind: 'server' | 'ha' }): ReactElement {
         Retrying…
       </motion.div>
 
-      {!isServer && (
-        <motion.div
-          variants={item}
-          className="absolute bottom-[max(32px,env(safe-area-inset-bottom))] left-0 right-0 flex flex-col items-center justify-center gap-2 px-6"
+      <motion.div
+        variants={item}
+        className="absolute bottom-[max(32px,env(safe-area-inset-bottom))] left-0 right-0 flex flex-col items-center justify-center gap-2 px-6"
+      >
+        <button
+          type="button"
+          onClick={() => navigate('/')}
+          className="flex items-center gap-2 border border-white/15 bg-white/[0.06] px-5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-white/[0.1] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+          style={{ borderRadius: 14, cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties}
         >
+          <Icon path={mdiHomeOutline} size={16} color="rgba(255,255,255,0.7)" />
+          Return home
+        </button>
+        {!isServer && isAdmin && (
           <button
             type="button"
             onClick={() => navigate('/admin')}
-            className="flex items-center gap-2 border border-white/15 bg-white/[0.06] px-5 py-2.5 text-[13.5px] font-semibold text-white hover:bg-white/[0.1] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+            className="flex items-center gap-2 border border-white/10 bg-transparent px-5 py-2 text-[12.5px] font-semibold text-white/60 hover:text-white/90 focus:outline-none focus-visible:ring-2 focus-visible:ring-white/30"
             style={{ borderRadius: 14, cornerShape: `superellipse(${SQUIRCLE})` } as React.CSSProperties}
           >
-            <Icon path={mdiServerNetwork} size={16} color="rgba(255,255,255,0.7)" />
+            <Icon path={mdiServerNetwork} size={14} color="rgba(255,255,255,0.55)" />
             Configure server
           </button>
+        )}
+        {!isServer && (
           <button
             type="button"
             onClick={() => setDemo(true)}
@@ -84,8 +97,8 @@ export function ErrorScreen({ kind }: { kind: 'server' | 'ha' }): ReactElement {
             <Icon path={mdiFlask} size={14} color="rgba(255,255,255,0.55)" />
             Try demo mode
           </button>
-        </motion.div>
-      )}
+        )}
+      </motion.div>
     </motion.div>
   );
 }

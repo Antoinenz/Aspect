@@ -7,6 +7,7 @@ import { SettingsPage } from './SettingsPage.js';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { useThemeStore } from './theme.js';
 import { useMotionStore } from './motionStore.js';
+import { useAuthStore } from '../auth/authStore.js';
 import type { EntityState } from '@aspect/shared';
 
 const base = {
@@ -37,6 +38,12 @@ describe('SettingsPage', () => {
     useThemeStore.setState({ theme: 'auto' });
     useMotionStore.setState({ motion: 'on' });
     useConnectionStore.setState({ ...base });
+    // Default to admin so the "Server administration" link is visible in
+    // tests that need it; individual tests can override below.
+    useAuthStore.setState({
+      status: 'authenticated', hasUsers: true,
+      user: { id: 'u1', username: 'admin', displayName: 'Admin', role: 'admin' },
+    });
   });
 
   it('switches the theme', async () => {

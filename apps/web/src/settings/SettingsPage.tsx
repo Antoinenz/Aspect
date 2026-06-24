@@ -9,6 +9,7 @@ import {
 } from '@mdi/js';
 import { useConnectionStore } from '../store/connectionStore.js';
 import { useDemoStore } from '../demo/demoStore.js';
+import { useAuthStore } from '../auth/authStore.js';
 import { useThemeStore, type ThemeChoice } from './theme.js';
 import { useMotionStore, type MotionPref } from './motionStore.js';
 import { Icon } from '../ui/Icon.js';
@@ -165,11 +166,17 @@ function ConnectionCard(): ReactElement {
   const navigate = useNavigate();
   const link = useConnectionStore((s) => s.link);
   const haConnected = useConnectionStore((s) => s.haConnected);
+  const demo = useDemoStore((s) => s.demo);
+  const isAdmin = useAuthStore((s) => s.user?.role === 'admin');
 
   let icon = mdiAlertCircleOutline;
   let color = 'var(--color-danger)';
   let text = 'Disconnected';
-  if (haConnected) {
+  if (demo) {
+    icon = mdiFlask;
+    color = '#ffd27d';
+    text = 'Not connected · displaying demo home';
+  } else if (haConnected) {
     icon = mdiCheckCircle;
     color = '#5fd08a';
     text = 'Connected to Home Assistant';
@@ -190,21 +197,23 @@ function ConnectionCard(): ReactElement {
           <Icon path={icon} size={20} color={color} />
           <span className="text-[15px] font-semibold">{text}</span>
         </div>
-        <button
-          type="button"
-          onClick={() => navigate('/admin')}
-          className="mt-1 flex w-full items-center gap-3 border border-[var(--color-border)] px-3 py-2.5 text-left text-[var(--color-muted)] hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-          style={squircle(13)}
-        >
-          <Icon path={mdiServerNetwork} size={20} />
-          <span className="flex-1">
-            <span className="block text-[13.5px] font-semibold">Server administration</span>
-            <span className="block text-[12px] text-[var(--color-muted)]">
-              Change the Home Assistant URL or token
+        {isAdmin && (
+          <button
+            type="button"
+            onClick={() => navigate('/admin')}
+            className="mt-1 flex w-full items-center gap-3 border border-[var(--color-border)] px-3 py-2.5 text-left text-[var(--color-muted)] hover:text-[var(--color-text)] focus:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
+            style={squircle(13)}
+          >
+            <Icon path={mdiServerNetwork} size={20} />
+            <span className="flex-1">
+              <span className="block text-[13.5px] font-semibold">Server administration</span>
+              <span className="block text-[12px] text-[var(--color-muted)]">
+                Change the Home Assistant URL or token
+              </span>
             </span>
-          </span>
-          <Icon path={mdiChevronRight} size={20} />
-        </button>
+            <Icon path={mdiChevronRight} size={20} />
+          </button>
+        )}
       </div>
     </Card>
   );
