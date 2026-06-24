@@ -6,6 +6,7 @@ import {
   createSnapshotMessage,
   createEntityUpdateMessage,
   createFavoritesMessage,
+  createPongMessage,
   isClientToServerMessage,
   type EntityState,
   type ServerStatus,
@@ -42,7 +43,7 @@ export class ClientHub {
     this.serviceCaller = caller;
   }
 
-  handleClientMessage(raw: string): void {
+  handleClientMessage(raw: string, replyTo?: WebSocket): void {
     let parsed: unknown;
     try {
       parsed = JSON.parse(raw);
@@ -68,6 +69,9 @@ export class ClientHub {
       } catch (err) {
         console.error('Failed to persist favorites reorder:', err);
       }
+    }
+    if (parsed.type === 'ping' && replyTo) {
+      this.send(replyTo, createPongMessage(parsed.nonce));
     }
   }
 
@@ -141,7 +145,7 @@ export const clientChannel = fp(
       },
       (socket) => {
         hub.add(socket);
-        socket.on('message', (raw) => hub.handleClientMessage(raw.toString()));
+        socket.on('message', (raw) => hub.handleClientMessage(raw.toString(), socket));
       },
     );
   },

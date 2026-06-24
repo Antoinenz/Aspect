@@ -27,11 +27,12 @@ async function makeApp(): Promise<FastifyInstance> {
   });
 }
 
-function getCookie(res: { headers: Record<string, string | string[] | undefined> }, name: string): string | null {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function getCookie(res: { headers: any }, name: string): string | null {
   const setCookie = res.headers['set-cookie'];
   if (!setCookie) return null;
-  const all = Array.isArray(setCookie) ? setCookie : [setCookie];
-  const found = all.find((c) => c.startsWith(`${name}=`));
+  const all: string[] = Array.isArray(setCookie) ? setCookie : [setCookie];
+  const found = all.find((c: string) => c.startsWith(`${name}=`));
   return found ? found.split(';')[0]!.slice(name.length + 1) : null;
 }
 

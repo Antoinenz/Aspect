@@ -61,7 +61,8 @@ async function makeApp(opts: {
   // route semantics instead of auth plumbing.
   const cookie = await asAdmin(built);
   const orig = built.inject.bind(built);
-  built.inject = ((args: Parameters<typeof orig>[0]) => {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  built.inject = ((args: any) => {
     if (typeof args === 'string') return orig(args);
     return orig({
       ...args,

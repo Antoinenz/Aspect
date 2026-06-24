@@ -49,12 +49,23 @@ export interface FavoritesMessage {
   entityIds: string[];
 }
 
+/** Reply to a client ping; carries back the same nonce so the client can
+ *  compute round-trip time. */
+export interface PongMessage {
+  type: 'pong';
+  /** Echo of the client's ping nonce. */
+  nonce: number;
+  /** Server's monotonic timestamp for the reply. */
+  ts: number;
+}
+
 /** Union of every message the server can send to a client. */
 export type ServerToClientMessage =
   | StatusMessage
   | SnapshotMessage
   | EntityUpdateMessage
-  | FavoritesMessage;
+  | FavoritesMessage
+  | PongMessage;
 
 /** Sent by a client immediately after connecting. */
 export interface HelloMessage {
@@ -84,12 +95,19 @@ export interface ReorderFavoritesMessage {
   entityIds: string[];
 }
 
+/** Liveness probe; the server replies with a `pong` echoing the same nonce. */
+export interface PingMessage {
+  type: 'ping';
+  nonce: number;
+}
+
 /** Union of every message a client can send to the server. */
 export type ClientToServerMessage =
   | HelloMessage
   | CallServiceMessage
   | SetFavoriteMessage
-  | ReorderFavoritesMessage;
+  | ReorderFavoritesMessage
+  | PingMessage;
 
 export function createCallServiceMessage(
   domain: string,
@@ -127,9 +145,19 @@ export function isClientToServerMessage(
       return typeof c.entityId === 'string' && typeof c.favorite === 'boolean';
     case 'reorder_favorites':
       return Array.isArray(c.entityIds) && (c.entityIds as unknown[]).every((id) => typeof id === 'string');
+    case 'ping':
+      return typeof c.nonce === 'number';
     default:
       return false;
   }
+}
+
+export function createPingMessage(nonce: number): PingMessage {
+  return { type: 'ping', nonce };
+}
+
+export function createPongMessage(nonce: number): PongMessage {
+  return { type: 'pong', nonce, ts: Date.now() };
 }
 
 export function createStatusMessage(
@@ -187,6 +215,8 @@ export function isServerToClientMessage(
       return Array.isArray(c.entities) && Array.isArray(c.removed);
     case 'favorites':
       return Array.isArray(c.entityIds);
+    case 'pong':
+      return typeof c.nonce === 'number' && typeof c.ts === 'number';
     default:
       return false;
   }
